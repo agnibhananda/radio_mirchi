@@ -1,0 +1,246 @@
+
+
+🎮 Game Title: Terminal Frequency
+
+🧠 Core Concept
+
+Terminal Frequency is a narrative-driven, pixel-styled browser game where players act as underground agents infiltrating retro-style radio broadcasts filled with AI-generated propaganda. Using a vintage terminal interface and a series of interactive windows, the player must strategically persuade listeners to question the narrative before being discovered and kicked out.
+
+
+---
+
+🚀 Gameplay Overview
+
+You start in a fake retro OS interface with pixelated UI.
+
+Your main tool is a command-line terminal where you enter commands like scan-freq, connect 95.6, etc.
+
+Connecting to a frequency opens a radio window that shows:
+
+AI-generated host + caller dialogues (WhatsApp-like or caption style)
+
+Mic and TTS input options (type or speak)
+
+A live listener count and a "Questioning" meter showing how many are doubting the narrative
+
+
+
+
+---
+
+🎯 Player’s Objective
+
+> Convince 80% of the radio's listeners to start questioning the propaganda before you get:
+
+
+
+Muted
+
+Disconnected by the AI security system
+
+Timed out
+
+
+
+---
+
+🗝️ Core Mechanics
+
+🎙️ Speech Interaction
+
+Use mic or text-to-speech to interact with the host and callers
+
+Stay calm and logical — ranting gets you flagged or muted
+
+You get a “protected free speech window” (~2 minutes) where they won’t mute you (to preserve the illusion of fairness)
+
+
+📈 Listener Persuasion System
+
+Each message you send is evaluated for how convincing, coherent, and disruptive it is to the host’s narrative
+
+If you say something impactful:
+
+Listeners start doubting
+
+The “Questioning” meter goes up
+
+
+If you’re chaotic or nonsensical:
+
+You gain suspicion points
+
+Host/security may eject you from the frequency
+
+
+
+👮 Security AI
+
+Tracks your tone, content, and repeated behaviors
+
+Too many strikes = kicked out
+
+Random "checks" may happen where your last 2-3 messages are re-evaluated
+
+
+
+---
+
+🖥️ UI Design
+
+Full pixel art / retro OS aesthetic
+
+Windows are movable, draggable, and include:
+
+🖥️ Terminal window
+
+📻 Radio window
+
+🗞️ News window (future feature — reference content, side stories, or notes)
+
+📝 Notepad window for personal logs
+
+
+Styled like Windows 95/NES/CRT interfaces, using pixel fonts and vintage themes
+
+
+
+
+
+
+🧱 UI Breakdown
+
+You’re building a fake OS desktop with:
+
+Component	Description
+
+🖥️ Desktop Canvas	Acts like a fake pixel OS UI with movable windows
+💻 Terminal Window	Command interface to trigger events (like connecting to radio)
+📻 Radio Window	Contains mic, TTS, host/caller UI
+🗞️ News Window (optional)	Floating reference/news feed window
+📝 Notes Window (optional)	Player’s notepad / mission log
+
+
+All windows are pixelated UI, draggable, resizable, and maybe even minimize/maximize if you want to go full Win95-core.
+
+
+---
+
+🧰 Recommended Tech Stack
+
+🎨 1. UI Framework
+
+Use React + TailwindCSS for logic and structure. Then layer the pixel aesthetic over it.
+
+BUT for drag-movable windows + fake desktop:
+
+Use react-rnd for resizable/draggable window behavior.
+
+OR use react-draggable if resizing isn’t needed.
+
+For window focus & z-index management, look at react-window-manager.
+
+
+
+---
+
+🧱 2. Pixel UI / Retro Aesthetic
+
+Use either:
+
+🔹 Option A: Pure CSS Pixel Art + Retro Themes
+
+NES.css – NES-style pixel UI components.
+
+98.css – Classic Win98 styles using just CSS.
+
+retro-css – Terminal-punk styles (aesthetic af).
+
+Windows95 UI – Very Win95-ish UI components for React.
+
+
+Mix in pixel fonts:
+
+Press Start 2P or VT323
+
+Use via Google Fonts or host locally
+
+
+
+---
+
+🔹 Option B: Canvas-based Fake OS UI (Advanced)
+
+If you want 100% custom visuals, consider rendering everything in <canvas> using:
+
+PixiJS (fast, supports shaders, UI-like interactions)
+
+Phaser 3 (2D game engine with window layering support)
+
+
+But honestly, unless you’re making it game-loop-heavy, go with React + CSS + drag libs for speed.
+
+
+---
+
+🎚️ 3. Audio + TTS + STT
+
+Feature	Tool
+
+Microphone Input	WebRTC or Web Audio API
+Whisper API	For transcribing mic input
+TTS	ElevenLabs or Bark (use text to audio stream via Web Audio)
+Audio FX	Add retro static/effects using Web Audio API (or just overlay noise clips)
+
+
+
+---
+
+🧠 4. LLM Backend
+
+Feature	Tool
+
+Host & Caller AI	GPT-4 or Claude with prompt memory
+Persuasion Engine	Scoring system via LLM evals or heuristics
+Infra	FastAPI / Node backend (whichever you prefer)
+Hosting	Vercel (frontend) + Supabase / Render / GCP (backend)
+
+
+
+---
+
+📦 5. Optional Enhancements
+
+Use zustand or redux for window state management (z-index, minimized, open windows).
+
+Add localStorage for player notes/history.
+
+Add keyboard shortcuts (cmd + N = new note, etc) using react-hotkeys-hook.
+
+
+
+---
+
+🧪 Suggested Folder Structure
+
+/src
+  /components
+    /windows
+      TerminalWindow.jsx
+      RadioWindow.jsx
+      NewsWindow.jsx
+      NotesWindow.jsx
+    Desktop.jsx
+    WindowManager.jsx
+  /styles
+    pixel.css (retro font + NES or 98.css overrides)
+  /logic
+    aiHostEngine.js
+    persuasionEngine.js
+    commandParser.js
+  App.jsx
+  index.css
+
+
+
+

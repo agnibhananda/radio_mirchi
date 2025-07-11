@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -20,7 +21,98 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #101014;
+  color: #39ff14;
+  font-family: 'Press Start 2P', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.crt {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.1) 0px,
+    rgba(0,0,0,0.2) 2px,
+    transparent 4px,
+    transparent 8px
+  );
+  mix-blend-mode: overlay;
+  z-index: 2;
+  animation: scanlines 1s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { background-position-y: 0; }
+  100% { background-position-y: 8px; }
+}
+
+.glitch {
+  color: #39ff14;
+  position: relative;
+  text-shadow:
+    0 0 8px #39ff14,
+    2px 0 2px #ff005a,
+    -2px 0 2px #00fff9;
+  animation: glitch 1s infinite linear alternate-reverse;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0,0); }
+}
+
+.pixel-btn {
+  background: #222;
+  border: 4px solid #39ff14;
+  color: #39ff14;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.1rem;
+  padding: 1rem 2.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 12px #39ff1444, 0 2px 0 #000;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, transform 0.1s;
+}
+.pixel-btn:hover {
+  background: #39ff14;
+  color: #222;
+  transform: scale(0.98);
+}
+
+.section-title {
+  color: #39ff14;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px #39ff14;
+}
+
+.pixel-input {
+  background: #18181c;
+  border: 2px solid #39ff14;
+  color: #39ff14;
+  font-family: 'Press Start 2P', monospace;
+  padding: 0.5rem 1rem;
+  border-radius: 0.3rem;
+  outline: none;
+  font-size: 1rem;
+}
+
+.pixel-input:focus {
+  border-color: #00fff9;
+  box-shadow: 0 0 8px #00fff9;
 }
