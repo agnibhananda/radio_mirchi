@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 Radio Mirchi
 
-## Getting Started
+A narrative-driven, pixel-styled browser game where players act as underground agents infiltrating retro-style radio broadcasts filled with AI-generated propaganda. Using a vintage terminal interface, players must strategically persuade listeners to question the narrative before being discovered.
 
-First, run the development server:
+## 🎯 Game Objective
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Win Condition**: Convince 80% of radio listeners to start questioning the propaganda
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Lose Conditions**:
+- Get muted by the host
+- Disconnected by AI security system
+- Time runs out
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Technical Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Frontend Stack
+- **Framework**: React 18+
+- **Styling**: TailwindCSS
+- **Window Management**: react-rnd 
+- **State Management**: zustand (lightweight) or Redux Toolkit
+- **Audio**: Web Audio API + Web Speech API
+- **Fonts**: Press Start 2P, VT323
 
-## Learn More
+### Backend Stack
+- **API**: FastAPI (Python) or Express.js (Node.js)
+- **LLM**: OpenAI GPT-4 or Anthropic Claude
+- **TTS**: ElevenLabs API or Azure Speech Services
+- **STT**: OpenAI Whisper API
+- **Database**: PostgreSQL (via Supabase) or MongoDB
 
-To learn more about Next.js, take a look at the following resources:
+### Deployment
+- **Frontend**: Vercel or Netlify
+- **Backend**: Railway, Render, or Google Cloud Run
+- **Database**: Supabase or PlanetScale
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎯 Success Metrics
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### MVP 1
+- [.] Terminal opens and accepts commands
+- [.] Basic frequency scanning works
+- [.] Retro UI aesthetic achieved
 
-## Deploy on Vercel
+### MVP 2
+- [ ] AI host responds coherently
+- [ ] Persuasion meter changes based on input
+- [ ] Win/lose conditions trigger correctly
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### MVP 3
+- [ ] Voice input/output works smoothly
+- [ ] Multiple AI personalities feel distinct
+- [ ] Security system creates engaging tension
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### MVP 4
+- [ ] All windows function independently
+- [ ] Full desktop simulation experience
+- [ ] Game state persists between sessions
+
+### MVP 5
+- [ ] Game feels polished and complete
+- [ ] Tutorial successfully onboards new players
+- [ ] Achievement system encourages replay
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

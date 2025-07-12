@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import LeaderboardPopup from './LeaderboardPopup';
+import { Button, Popup, Card } from 'pixel-retroui';
 
 const palette = {
   bg: '#fefcf3',
@@ -19,57 +21,7 @@ const palette = {
 
 const modernRetroFont = {
   fontFamily: '"SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Consolas", monospace',
-};
-
-// Sleek Radio Icon
-const RadioIcon = ({ animate = false }) => {
-  const [wave, setWave] = useState(0);
-  
-  useEffect(() => {
-    if (animate) {
-      const interval = setInterval(() => {
-        setWave(prev => (prev + 1) % 3);
-      }, 600);
-      return () => clearInterval(interval);
-    }
-  }, [animate]);
-
-  return (
-    <div className="relative group">
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-100 to-yellow-50 shadow-lg border border-orange-200 transform transition-all duration-300 group-hover:scale-105">
-        <svg width="48" height="36" viewBox="0 0 48 36" fill="none" className="mx-auto">
-          <rect x="2" y="8" width="44" height="20" rx="6" fill="#d4a574" stroke="#8b4513" strokeWidth="2"/>
-          <rect x="6" y="12" width="28" height="12" rx="3" fill="#f0e68c" stroke="#8b4513" strokeWidth="1"/>
-          <rect x="38" y="12" width="6" height="6" rx="2" fill="#cd853f"/>
-          <rect x="38" y="20" width="6" height="4" rx="2" fill="#4682b4"/>
-          <circle cx="11" cy="18" r="2" fill="#6b8e23"/>
-          <circle cx="17" cy="18" r="2" fill="#cd853f"/>
-          <circle cx="23" cy="18" r="2" fill="#4682b4"/>
-          <rect x="22" y="2" width="2" height="6" fill="#8b4513"/>
-          <rect x="18" y="1" width="10" height="1" fill="#8b4513"/>
-        </svg>
-      </div>
-      
-      {animate && (
-        <div className="absolute -top-2 -right-2">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="absolute w-3 h-3 border-2 border-yellow-400 rounded-full animate-ping"
-              style={{
-                animationDelay: `${i * 0.3}s`,
-                animationDuration: '2s',
-                opacity: wave === i ? 0.8 : 0.3,
-                right: `${i * 4}px`,
-                top: `${i * 4}px`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+}
 
 // Info Modal
 interface AboutModalProps {
@@ -77,61 +29,58 @@ interface AboutModalProps {
   onClose: () => void;
 }
 
-function AboutModal({ open, onClose }: AboutModalProps) {
-  const [displayed, setDisplayed] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
-  const aboutText = `Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's infenses.`;
-  
+function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?: React.RefObject<HTMLButtonElement> }) {
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+  const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    if (open) {
-      let i = 0;
-      setDisplayed('');
-      const interval = setInterval(() => {
-        setDisplayed(aboutText.slice(0, i));
-        i++;
-        if (i > aboutText.length) {
-          clearInterval(interval);
-          setTimeout(() => setShowCursor(false), 500);
-        }
-      }, 30);
-      return () => clearInterval(interval);
+    if (open && anchorRef?.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX - 16,
+      });
+      setTimeout(() => setVisible(true), 10);
+    } else {
+      setVisible(false);
     }
-  }, [open]);
+  }, [open, anchorRef]);
 
-  if (!open) return null;
-
+  if (!open || !position) return null;
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-      onClick={onClose}
+    <div
+      style={{
+        position: 'absolute',
+        top: position.top,
+        left: position.left,
+        zIndex: 100,
+        minWidth: 320,
+        maxWidth: 400,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(-12px)',
+        transition: 'opacity 0.25s cubic-bezier(.4,0,.2,1), transform 0.25s cubic-bezier(.4,0,.2,1)',
+      }}
+      className="drop-shadow-xl"
     >
-      <div 
-        className="bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200 shadow-2xl rounded-2xl p-8 max-w-lg w-full relative transform transition-all duration-300 scale-100"
-        style={{
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(212, 165, 116, 0.2)',
-          ...modernRetroFont,
-        }}
-        onClick={(e) => e.stopPropagation()}
+      <Popup
+        isOpen={open}
+        onClose={onClose}
+        bg="#fefcd0"
+        baseBg="#f5f1e8"
+        textColor="#2c1810"
+        borderColor="#e8dcc6"
+        className="w-full"
       >
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-orange-800">Mission Brief</h3>
-          <button 
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-orange-200 hover:bg-orange-300 flex items-center justify-center text-orange-800 transition-colors"
-          >
-            ✕
-          </button>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xl font-bold text-orange-800">Mission Brief</span>
         </div>
-        
-        <div className="text-gray-700 leading-relaxed min-h-[120px]">
-          {displayed}
-          {showCursor && <span className="animate-pulse text-orange-600">|</span>}
+        <div>
+          Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
         </div>
-        
-        <div className="mt-6 text-right">
+        <div className="mt-4 text-right">
           <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
         </div>
-      </div>
+      </Popup>
     </div>
   );
 }
@@ -204,71 +153,16 @@ function TypewriterText({ text, speed = 50 }: TypewriterTextProps) {
   );
 }
 
-// Floating Particles
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  speed: number;
-  opacity: number;
-}
-
-function FloatingParticles() {
-  const [particles, setParticles] = useState<Particle[]>([]);
-  
-  useEffect(() => {
-    const newParticles: Particle[] = Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3 + 1,
-      speed: Math.random() * 0.3 + 0.1,
-      opacity: Math.random() * 0.4 + 0.2,
-    }));
-    setParticles(newParticles);
-    
-    const interval = setInterval(() => {
-      setParticles(prev => 
-        prev.map(p => ({
-          ...p,
-          y: (p.y + p.speed) % 100,
-          opacity: 0.2 + Math.sin(Date.now() * 0.001 + p.id) * 0.3,
-        }))
-      );
-    }, 100);
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {particles.map(particle => (
-        <div
-          key={particle.id}
-          className="absolute rounded-full bg-gradient-to-r from-yellow-300 to-orange-300"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            opacity: particle.opacity,
-            boxShadow: `0 0 ${particle.size * 3}px rgba(255, 215, 0, 0.6)`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-export default function HeroSection() {
+export default function UpdatedHeroSection() {
   const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [radioAnimate, setRadioAnimate] = useState(false);
   const [buttonHover, setButtonHover] = useState(false);
   const [missionHover, setMissionHover] = useState(false);
   const [riskHover, setRiskHover] = useState(false);
+  const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
@@ -277,14 +171,15 @@ export default function HeroSection() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && aboutOpen) {
-        setAboutOpen(false);
+      if (e.key === 'Escape') {
+        if (aboutOpen) setAboutOpen(false);
+        if (leaderboardOpen) setLeaderboardOpen(false);
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [aboutOpen]);
+  }, [aboutOpen, leaderboardOpen]);
 
   const handleInitiate = () => {
     router.push('/terminal');
@@ -293,7 +188,7 @@ export default function HeroSection() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 relative overflow-hidden">
       {/* Laptop Bezel */}
-      <div className="absolute inset-0 p-8 md:p-10 lg:p-16">
+      <div className="absolute inset-0 p-4 md:p-8 lg:p-12">
         {/* Outer laptop shell */}
         <div 
           className="w-full h-full rounded-3xl shadow-2xl relative"
@@ -302,9 +197,9 @@ export default function HeroSection() {
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
           }}
         >
-          {/* Inner bezel - made thinner */}
+          {/* Inner bezel */}
           <div className="absolute inset-2 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-800 shadow-inner">
-            {/* Screen area - made thinner */}
+            {/* Screen area */}
             <div 
               className="absolute inset-1.5 rounded-xl overflow-hidden"
               style={{
@@ -314,9 +209,6 @@ export default function HeroSection() {
             >
               {/* Screen content */}
               <div className="w-full h-full bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100 relative overflow-hidden">
-                {/* Floating Particles */}
-                <FloatingParticles />
-                
                 {/* Subtle Pattern Overlay */}
                 <div className="absolute inset-0 opacity-10">
                   <div 
@@ -328,111 +220,136 @@ export default function HeroSection() {
                   />
                 </div>
                 
-                {/* Main Content */}
-                <div className="relative z-10 min-h-full flex items-center justify-center p-6">
-                  <div className="w-full max-w-4xl">
-                    {/* Hero Card */}
-                    <div className="bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-2xl border border-orange-200 overflow-hidden">
-                      <div className="p-10 md:p-16 text-center">
-                        {/* Radio Icon */}
-                        <div 
-                          className="mb-8 inline-block cursor-pointer"
-                          onClick={() => setRadioAnimate(!radioAnimate)}
-                        >
-                          <RadioIcon animate={radioAnimate} />
-                        </div>
-                        
-                        {/* Title */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1"></div>
-                            <button
-                              onClick={() => setAboutOpen(true)}
-                              className="w-8 h-8 rounded-full bg-orange-200 hover:bg-orange-300 flex items-center justify-center text-orange-700 transition-all duration-200 hover:scale-110"
-                            >
-                              ℹ️
-                            </button>
-                            <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1"></div>
-                          </div>
-                        </div>
-                        
-                        {/* Subtitle */}
-                        <div className="mb-8">
-                          <p className="text-xl md:text-2xl text-orange-600 mb-2 font-medium">
-                            RADIO MIRCHI
-                          </p>
-                          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                            <TypewriterText text="Infiltrate retro radio broadcasts and disrupt AI propaganda in this terminal-styled narrative adventure." />
-                          </p>
-                        </div>
-                        
-                        {/* Feature Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-2xl mx-auto">
-                          <div
-                            className="p-6 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
-                            onMouseEnter={() => setMissionHover(true)}
-                            onMouseLeave={() => setMissionHover(false)}
+                {/* Main Content - Fixed Layout */}
+                <div className="relative z-10 min-h-full flex flex-col">
+                  {/* Content Container */}
+                  <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+                    <div className="w-full max-w-4xl">
+                      {/* Hero Card */}
+                      <Card
+                        bg="#fffbe6"
+                        textColor="#ea580c"
+                        borderColor="#e8dcc6"
+                        shadowColor="#f5e7c6"
+                        className="rounded-3xl shadow-2xl border overflow-hidden p-0"
+                      >
+                        <div className="p-6 md:p-8 lg:p-10 text-center">
+                          {/* Radio Icon */}
+                          <div 
+                            className="mb-6 flex justify-center"
+                            onClick={() => setRadioAnimate(!radioAnimate)}
                           >
-                            <div className="flex items-center justify-center mb-3">
-                              <span className="text-2xl mr-2">📡</span>
-                              <h3 className="text-lg font-bold text-green-700">MISSION</h3>
-                            </div>
-                            <p className="text-green-600 text-sm">Counter propaganda broadcasts</p>
+                            <img 
+                              src="/radio.png" 
+                              alt="Radio Icon" 
+                              className="w-16 h-12 md:w-20 md:h-16 lg:w-24 lg:h-20 object-contain drop-shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
+                            />
                           </div>
                           
-                          <div
-                            className="p-6 rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
-                            onMouseEnter={() => setRiskHover(true)}
-                            onMouseLeave={() => setRiskHover(false)}
-                          >
-                            <div className="flex items-center justify-center mb-3">
-                              <span className="text-2xl mr-2">⚠️</span>
-                              <h3 className="text-lg font-bold text-red-700">RISK</h3>
+                          {/* Title Section */}
+                          <div className="mb-6">
+                            {/* Action Buttons Row */}
+                            <div className="flex items-center justify-center gap-4 md:gap-6 mb-4">
+                              <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1 max-w-32"></div>
+                              <div className="flex gap-3">
+                                <button
+                                  ref={infoButtonRef}
+                                  className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-200 hover:bg-orange-300 flex items-center justify-center text-orange-700 transition-all duration-200 hover:scale-110"
+                                  onClick={() => setAboutOpen((v) => !v)}
+                                  title="Mission Brief"
+                                >
+                                  <img src="/info.png" alt="Info" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                                </button>
+                                <button
+                                  className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-200 hover:bg-yellow-300 flex items-center justify-center text-yellow-700 transition-all duration-200 hover:scale-110"
+                                  onClick={() => setLeaderboardOpen(true)}
+                                  title="Leaderboard"
+                                >
+                                  <img src="/trophy.png" alt="Leaderboard" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                                </button>
+                              </div>
+                              <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1 max-w-32"></div>
                             </div>
-                            <p className="text-red-600 text-sm">Avoid detection systems</p>
+                            
+                            {/* Main Title */}
+                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-orange-600 mb-3" style={modernRetroFont}>
+                              RADIO MIRCHI
+                            </h1>
+                            
+                            {/* Subtitle */}
+                            <div className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                              <TypewriterText text="Infiltrate retro radio broadcasts and disrupt AI propaganda in this terminal-styled narrative adventure." />
+                            </div>
                           </div>
+                          
+                          {/* Feature Cards */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 max-w-2xl mx-auto">
+                            <div
+                              onMouseEnter={() => setMissionHover(true)}
+                              onMouseLeave={() => setMissionHover(false)}
+                            >
+                              <Card
+                                bg="#e6fbe6"
+                                textColor="#14532d"
+                                borderColor="#22c55e"
+                                shadowColor="#bbf7d0"
+                                className="p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer h-full"
+                              >
+                                <div className="flex items-center justify-center mb-3">
+                                  <img src="/flag.png" alt="Mission" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
+                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#15803d' }}>MISSION</h3>
+                                </div>
+                                <p className="text-green-700 text-sm md:text-base">Counter propaganda broadcasts</p>
+                              </Card>
+                            </div>
+                            <div
+                              onMouseEnter={() => setRiskHover(true)}
+                              onMouseLeave={() => setRiskHover(false)}
+                            >
+                              <Card
+                                bg="#fef2f2"
+                                textColor="#991b1b"
+                                borderColor="#ef4444"
+                                shadowColor="#fecaca"
+                                className="p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer h-full"
+                              >
+                                <div className="flex items-center justify-center mb-3">
+                                  <img src="/danger.png" alt="Risk" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
+                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#b91c1c' }}>RISK</h3>
+                                </div>
+                                <p className="text-red-700 text-sm md:text-base">Avoid detection systems</p>
+                              </Card>
+                            </div>
+                          </div>
+                          
+                          {/* Main Action Button */}
+                          <div className="mb-6">
+                            <Button
+                              color="primary"
+                              className="px-8 md:px-12 lg:px-16 py-4 md:py-5 lg:py-6 text-lg md:text-xl font-bold drop-shadow-lg"
+                              style={{ fontFamily: 'inherit' }}
+                              onClick={handleInitiate}
+                            >
+                              <span className="flex items-center gap-2">
+                                <span>▶</span>
+                                <span>INITIATE INFILTRATION</span>
+                              </span>
+                            </Button>
+                          </div>
+                          
+                          {/* Instructions */}
+                          <p className="text-gray-500 text-xs md:text-sm">
+                            Press <span className="text-orange-600 font-semibold">ENTER</span> or click to begin infiltration
+                          </p>
                         </div>
-                        
-
-                        <div className="mb-8">
-                          <button
-                            className="group relative px-16 py-6 text-xl font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-orange-600 overflow-hidden"
-                            style={{
-                              backgroundColor: '#eed5a5',
-                              color: '#ea580c',
-                              ...modernRetroFont
-                            }}
-                            onMouseEnter={() => setButtonHover(true)}
-                            onMouseLeave={() => setButtonHover(false)}
-                            onClick={handleInitiate}
-                          >
-                            <span className="relative z-10 flex items-center justify-center gap-2">
-                              <span>▶</span>
-                              <span>INITIATE INFILTRATION</span>
-                            </span>
-                            
-                            {/* Animated background */}
-                            <div 
-                              className="absolute inset-0 bg-orange-200 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
-                            ></div>
-                            
-                            {/* Shine effect */}
-                            {buttonHover && (
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 transform skew-x-12 translate-x-full animate-pulse"></div>
-                            )}
-                          </button>
-                        </div>
-                        
-                        {/* Instructions */}
-                        <p className="text-gray-500 text-sm">
-                          Press <span className="text-orange-600 font-semibold">ENTER</span> or click to begin infiltration
-                        </p>
-                      </div>
+                      </Card>
                     </div>
-                    
-                    {/* Footer */}
-                    <div className="mt-8 flex justify-between items-center text-sm text-gray-600 px-4">
-                      <span>SYSTEM: TERMINAL-OS v3.7</span>
+                  </div>
+                  
+                  {/* Footer - Fixed at bottom */}
+                  <div className="p-4 md:p-6">
+                    <div className="flex justify-between items-center text-xs md:text-sm text-gray-600">
+                      <span style={modernRetroFont}>SYSTEM: TERMINAL-OS v3.7</span>
                       <AnimatedStatus loading={loading} />
                     </div>
                   </div>
@@ -442,27 +359,23 @@ export default function HeroSection() {
           </div>
           
           {/* Laptop details */}
-          {/* Brand logo */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs font-mono opacity-60">
+          <div className="absolute bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs font-mono opacity-60">
             RETRO-TECH • MODEL RT-2024
           </div>
-          
-          {/* Corner accents */}
-          <div className="absolute top-6 left-6 w-3 h-3 rounded-full bg-gray-500 shadow-inner"></div>
-          <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-gray-500 shadow-inner"></div>
-          <div className="absolute bottom-6 left-6 w-3 h-3 rounded-full bg-gray-500 shadow-inner"></div>
-          <div className="absolute bottom-6 right-6 w-3 h-3 rounded-full bg-gray-500 shadow-inner"></div>
-          
-          {/* Power indicator */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-lg" style={{ boxShadow: '0 0 8px #4ade80' }}></div>
+          <div className="absolute top-4 md:top-6 left-4 md:left-6 w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 shadow-inner"></div>
+          <div className="absolute top-4 md:top-6 right-4 md:right-6 w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 shadow-inner"></div>
+          <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 shadow-inner"></div>
+          <div className="absolute bottom-4 md:bottom-6 right-4 md:right-6 w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-500 shadow-inner"></div>
+          <div className="absolute top-3 md:top-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 md:gap-2">
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-400 animate-pulse shadow-lg" style={{ boxShadow: '0 0 8px #4ade80' }}></div>
             <span className="text-gray-400 text-xs font-mono">PWR</span>
           </div>
         </div>
       </div>
       
-      {/* About Modal */}
-      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      {/* Modals */}
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} anchorRef={infoButtonRef as React.RefObject<HTMLButtonElement>} />
+      <LeaderboardPopup isOpen={leaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
     </div>
   );
 }

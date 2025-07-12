@@ -14,8 +14,10 @@
     "next": "15.3.5",
     "pixel-retroui": "^2.1.0",
     "react": "^19.0.0",
+    "react-audio-visualize": "^1.2.0",
     "react-dom": "^19.0.0",
-    "react-rnd": "^10.5.2"
+    "react-rnd": "^10.5.2",
+    "react-sound-visualizer": "^1.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

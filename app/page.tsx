@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import RegisterSection from './components/RegisterSection';
-import UpdatedHeroSection from './components/UpdatedHeroSection';
+import UpdatedHeroSection from './components/HeroSection';
 
 export default function Home() {
   const [showMain, setShowMain] = useState(false);
@@ -12,11 +12,11 @@ export default function Home() {
 
   return (
     <div>
-      {!showMain ? (
+      {/* {!showMain ? (
         <RegisterSection onComplete={handleRegistrationComplete} />
-      ) : (
+      ) : ( */}
         <UpdatedHeroSection />
-      )}
+      {/* )} */}
     </div>
   );
 }

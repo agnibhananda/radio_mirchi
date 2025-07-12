@@ -27,6 +27,12 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  cursor: url('/cursor.png'), auto;
+}
+
+/* Use custom pointer for clickable elements */
+button, a, [role="button"], .cursor-pointer, input[type="submit"], input[type="button"] {
+  cursor: url('/pointer.png'), pointer;
 }
 
 .crt {
