@@ -38,35 +38,21 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
     setErrors({});
 
     try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setIsSuccess(true);
-        onRegistrationSuccess(data.user);
-        setFormData({ name: '', email: '' });
-        
-        // Auto-hide success message after 3 seconds
-        setTimeout(() => setIsSuccess(false), 3000);
-      } else {
-        if (data.errors) {
-          // Handle validation errors
-          const newErrors: FormErrors = {};
-          data.errors.forEach((error: any) => {
-            newErrors[error.field as keyof FormErrors] = error.message;
-          });
-          setErrors(newErrors);
-        } else {
-          setErrors({ general: data.message });
-        }
-      }
+      // Simulate API call for demo purposes
+      // In a real app, you'd make an actual API call here
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulate successful registration
+      const mockUser = {
+        name: formData.name,
+        email: formData.email,
+        id: Date.now().toString()
+      };
+      
+      setIsSuccess(true);
+      onRegistrationSuccess(mockUser);
+      setFormData({ name: '', email: '' });
+      
     } catch (error) {
       console.error('Registration error:', error);
       setErrors({ general: 'Network error. Please try again.' });

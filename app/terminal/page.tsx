@@ -526,6 +526,7 @@ export default function TerminalPage() {
               position: 'relative',
             }}>
               <TypewriterText
+                id={`connected-${connectedStation.name}`}
                 key={`connected-${connectedStation.name}`}
                 text={`🎵 INFILTRATING: ${connectedStation.name} - ${connectedStation.desc} 🎵`}
                 speed={40}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import LeaderboardPopup from './LeaderboardPopup';
+import RegisterForm from './RegisterForm';
 import { Button, Popup, Card } from 'pixel-retroui';
 
 const palette = {
@@ -32,7 +33,7 @@ interface AboutModalProps {
 function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?: React.RefObject<HTMLButtonElement> }) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [visible, setVisible] = useState(false);
-
+  
   useEffect(() => {
     if (open && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
@@ -48,7 +49,7 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
 
   if (!open || !position) return null;
   return (
-    <div
+    <div 
       style={{
         position: 'absolute',
         top: position.top,
@@ -157,6 +158,7 @@ export default function UpdatedHeroSection() {
   const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [radioAnimate, setRadioAnimate] = useState(false);
   const [buttonHover, setButtonHover] = useState(false);
@@ -185,8 +187,22 @@ export default function UpdatedHeroSection() {
     const audio = new window.Audio('/sfx/select.mp3');
     audio.play();
     setTimeout(() => {
+      setRegistrationOpen(true);
+    }, 120);
+  };
+
+  const handleRegistrationSuccess = (user: any) => {
+    setRegistrationOpen(false);
+    setTimeout(() => {
       router.push('/terminal');
-    }, 120); // Let the sound play for a short moment before routing
+    }, 500);
+  };
+
+  const handleSkipRegistration = () => {
+    setRegistrationOpen(false);
+    setTimeout(() => {
+      router.push('/terminal');
+    }, 500);
   };
 
   return (
@@ -228,8 +244,8 @@ export default function UpdatedHeroSection() {
                 <div className="relative z-10 min-h-full flex flex-col">
                   {/* Content Container */}
                   <div className="flex-1 flex items-center justify-center p-4 md:p-8">
-                    <div className="w-full max-w-4xl">
-                      {/* Hero Card */}
+                  <div className="w-full max-w-4xl">
+                    {/* Hero Card */}
                       <Card
                         bg="#fffbe6"
                         textColor="#ea580c"
@@ -238,18 +254,18 @@ export default function UpdatedHeroSection() {
                         className="rounded-3xl shadow-2xl border overflow-hidden p-0"
                       >
                         <div className="p-6 md:p-8 lg:p-10 text-center">
-                          {/* Radio Icon */}
-                          <div 
+                        {/* Radio Icon */}
+                        <div 
                             className="mb-6 flex justify-center"
-                            onClick={() => setRadioAnimate(!radioAnimate)}
-                          >
+                          onClick={() => setRadioAnimate(!radioAnimate)}
+                        >
                             <img 
                               src="/radio.png" 
                               alt="Radio Icon" 
                               className="w-16 h-12 md:w-20 md:h-16 lg:w-24 lg:h-20 object-contain drop-shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
                             />
-                          </div>
-                          
+                        </div>
+                        
                           {/* Title Section */}
                           <div className="mb-6">
                             {/* Action Buttons Row */}
@@ -264,33 +280,33 @@ export default function UpdatedHeroSection() {
                                 >
                                   <img src="/info.png" alt="Info" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
                                 </button>
-                                <button
+                            <button
                                   className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-yellow-200 hover:bg-yellow-300 flex items-center justify-center text-yellow-700 transition-all duration-200 hover:scale-110"
                                   onClick={() => setLeaderboardOpen(true)}
                                   title="Leaderboard"
-                                >
+                            >
                                   <img src="/trophy.png" alt="Leaderboard" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-                                </button>
-                              </div>
+                            </button>
+                          </div>
                               <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1 max-w-32"></div>
-                            </div>
+                        </div>
                             
                             {/* Main Title */}
                             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-orange-600 mb-3" style={modernRetroFont}>
                               RADIO MIRCHI
                             </h1>
-                            
-                            {/* Subtitle */}
+                        
+                        {/* Subtitle */}
                             <div className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                              <TypewriterText text="Infiltrate retro radio broadcasts and disrupt AI propaganda in this terminal-styled narrative adventure." />
+                            <TypewriterText text="Infiltrate retro radio broadcasts and disrupt AI propaganda in this terminal-styled narrative adventure." />
                             </div>
-                          </div>
-                          
-                          {/* Feature Cards */}
+                        </div>
+                        
+                        {/* Feature Cards */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 max-w-2xl mx-auto">
-                            <div
-                              onMouseEnter={() => setMissionHover(true)}
-                              onMouseLeave={() => setMissionHover(false)}
+                          <div
+                            onMouseEnter={() => setMissionHover(true)}
+                            onMouseLeave={() => setMissionHover(false)}
                             >
                               <Card
                                 bg="#e6fbe6"
@@ -298,17 +314,17 @@ export default function UpdatedHeroSection() {
                                 borderColor="#22c55e"
                                 shadowColor="#bbf7d0"
                                 className="p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer h-full"
-                              >
-                                <div className="flex items-center justify-center mb-3">
+                          >
+                            <div className="flex items-center justify-center mb-3">
                                   <img src="/flag.png" alt="Mission" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
                                   <h3 className="text-base md:text-lg font-bold" style={{ color: '#15803d' }}>MISSION</h3>
                                 </div>
                                 <p className="text-green-700 text-sm md:text-base">Counter propaganda broadcasts</p>
                               </Card>
                             </div>
-                            <div
-                              onMouseEnter={() => setRiskHover(true)}
-                              onMouseLeave={() => setRiskHover(false)}
+                          <div
+                            onMouseEnter={() => setRiskHover(true)}
+                            onMouseLeave={() => setRiskHover(false)}
                             >
                               <Card
                                 bg="#fef2f2"
@@ -316,40 +332,40 @@ export default function UpdatedHeroSection() {
                                 borderColor="#ef4444"
                                 shadowColor="#fecaca"
                                 className="p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer h-full"
-                              >
-                                <div className="flex items-center justify-center mb-3">
+                          >
+                            <div className="flex items-center justify-center mb-3">
                                   <img src="/danger.png" alt="Risk" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
                                   <h3 className="text-base md:text-lg font-bold" style={{ color: '#b91c1c' }}>RISK</h3>
-                                </div>
+                            </div>
                                 <p className="text-red-700 text-sm md:text-base">Avoid detection systems</p>
                               </Card>
-                            </div>
                           </div>
-                          
+                        </div>
+                        
                           {/* Main Action Button */}
                           <div className="mb-6">
                             <Button
                               color="primary"
                               className="px-8 md:px-12 lg:px-16 py-4 md:py-5 lg:py-6 text-lg md:text-xl font-bold drop-shadow-lg"
                               style={{ fontFamily: 'inherit' }}
-                              onClick={handleInitiate}
-                            >
+                            onClick={handleInitiate}
+                          >
                               <span className="flex items-center gap-2">
-                                <span>▶</span>
-                                <span>INITIATE INFILTRATION</span>
-                              </span>
+                              <span>▶</span>
+                              <span>INITIATE INFILTRATION</span>
+                            </span>
                             </Button>
-                          </div>
-                          
-                          {/* Instructions */}
+                        </div>
+                        
+                        {/* Instructions */}
                           <p className="text-gray-500 text-xs md:text-sm">
-                            Press <span className="text-orange-600 font-semibold">ENTER</span> or click to begin infiltration
-                          </p>
+                          Press <span className="text-orange-600 font-semibold">ENTER</span> or click to begin infiltration
+                        </p>
                         </div>
                       </Card>
+                      </div>
                     </div>
-                  </div>
-                  
+                    
                   {/* Footer - Fixed at bottom */}
                   <div className="p-4 md:p-6">
                     <div className="flex justify-between items-center text-xs md:text-sm text-gray-600">
@@ -380,6 +396,23 @@ export default function UpdatedHeroSection() {
       {/* Modals */}
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} anchorRef={infoButtonRef as React.RefObject<HTMLButtonElement>} />
       <LeaderboardPopup isOpen={leaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
+      
+      {/* Registration Modal */}
+      {registrationOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-md">
+            <RegisterForm onRegistrationSuccess={handleRegistrationSuccess} />
+            <div className="text-center mt-4">
+              <button
+                onClick={handleSkipRegistration}
+                className="px-6 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors border border-gray-300"
+              >
+                Continue as Guest
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
