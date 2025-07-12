@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import RegisterForm from './RegisterForm';
 
 interface RegisterSectionProps {
@@ -7,6 +8,7 @@ interface RegisterSectionProps {
 }
 
 export default function RegisterSection({ onComplete }: RegisterSectionProps) {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showSkip, setShowSkip] = useState(false);
 
@@ -18,14 +20,14 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
 
   const handleRegistrationSuccess = (user: any) => {
     setCurrentUser(user);
-    // Auto-proceed after successful registration
+    // Redirect to terminal after successful registration
     setTimeout(() => {
-      onComplete();
+      router.push('/terminal');
     }, 2000);
   };
 
   const handleSkip = () => {
-    onComplete();
+    router.push('/terminal');
   };
 
   return (
@@ -83,7 +85,7 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
                     {/* Registration Form + Guest Option */}
                     <div className="md:w-1/2 w-full flex flex-col items-center">
                       <RegisterForm onRegistrationSuccess={handleRegistrationSuccess} />
-                      {showSkip && !currentUser && (
+                    {showSkip && !currentUser && (
                         <div className="inline-block p-3 bg-white bg-opacity-50 rounded-lg border border-orange-200 mt-4 w-full max-w-xs">
                           <p className="text-xs text-gray-600 mb-2">
                             Want to proceed without registration?
@@ -97,29 +99,29 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
                         </div>
                       )}
                     </div>
-                  </div>
-                </div>
+                        </div>
+                      </div>
 
-                {/* Success State */}
-                {currentUser && (
+                    {/* Success State */}
+                    {currentUser && (
                   <div className="text-center mt-4">
                     <div className="inline-block p-4 bg-green-50 rounded-lg border border-green-200">
                       <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <span className="text-2xl">✅</span>
-                      </div>
+                            <span className="text-2xl">✅</span>
+                          </div>
                       <h3 className="text-base font-bold text-green-800 mb-1">
-                        Welcome to the Resistance, {currentUser.name}!
-                      </h3>
+                            Welcome to the Resistance, {currentUser.name}!
+                          </h3>
                       <p className="text-green-700 mb-2 text-sm">
-                        Your agent profile has been created. Proceeding to mission briefing...
-                      </p>
+                            Your agent profile has been created. Proceeding to mission briefing...
+                          </p>
                       <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </div>
           {/* Laptop details - Same as HeroSection */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs font-mono opacity-60">
             RETRO-TECH • MODEL RT-2024

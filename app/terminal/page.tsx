@@ -93,8 +93,8 @@ function TypewriterText({ text, speed = 30, delay = 0, color = RETRO_COLORS.GREE
         clearInterval(interval);
         setTimeout(() => setShowCursor(false), 1000);
         hasAnimated.current = true;
-      }
-    }, speed);
+        }
+      }, speed);
     return () => clearInterval(interval);
   }, [text, speed, id]);
 
@@ -184,21 +184,21 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
         />
         {/* Custom blinking cursor - only show when focused */}
         {isFocused && (
-          <span
-            style={{
-              position: 'absolute',
-              left: `${value.length * 8.4}px`, // Approximate character width
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: RETRO_COLORS.GREEN,
-              animation: 'blink 1s infinite',
-              textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
-              fontSize: 14,
-              lineHeight: 1,
-            }}
-          >
-            █
-          </span>
+        <span
+          style={{
+            position: 'absolute',
+            left: `${value.length * 8.4}px`, // Approximate character width
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: RETRO_COLORS.GREEN,
+            animation: 'blink 1s infinite',
+            textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+        >
+          █
+        </span>
         )}
       </div>
     </div>

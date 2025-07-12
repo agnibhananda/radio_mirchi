@@ -34,7 +34,8 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent default form submission
     setIsLoading(true);
     setErrors({});
 
@@ -60,16 +61,47 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
       return;
     }
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate successful registration/login
+      const endpoint = mode === 'signup' ? '/api/register' : '/api/signin';
+      const payload = mode === 'signup' 
+        ? { name: formData.name, email: formData.email, password: formData.password }
+        : { email: formData.email, password: formData.password };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle specific error messages from API
+        if (data.message) {
+          if (data.message.includes('email')) {
+            setErrors({ email: data.message });
+          } else if (data.message.includes('password')) {
+            setErrors({ password: data.message });
+          } else if (data.message.includes('name')) {
+            setErrors({ name: data.message });
+          } else {
+            setErrors({ general: data.message });
+          }
+        } else {
+          setErrors({ general: 'An error occurred. Please try again.' });
+        }
+        return;
+      }
+
+      // Success
       setIsSuccess(true);
       const user = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: formData.name || formData.email.split('@')[0],
-        email: formData.email
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        score: data.user.score
       };
       onRegistrationSuccess(user);
       setFormData({ name: '', email: '', password: '' });
@@ -130,38 +162,38 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
           <form onSubmit={handleSubmit} className="space-y-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {mode === 'signup' && (
-                <div>
+            <div>
                   <label htmlFor="name" className="block text-xs font-medium text-gray-700 mb-1">
-                    Agent Name
-                  </label>
+                Agent Name
+              </label>
                   <Input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter your agent name"
-                    disabled={isLoading}
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter your agent name"
+                disabled={isLoading}
                     className="w-full"
                     color="orange"
                     borderColor={errors.name ? "red" : "orange"}
-                  />
-                  {errors.name && (
+              />
+              {errors.name && (
                     <p className="mt-1 text-xs text-red-600">{errors.name}</p>
                   )}
                 </div>
               )}
-              <div>
+            <div>
                 <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
-                  Secure Email
-                </label>
+                Secure Email
+              </label>
                 <Input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="agent@resistance.net"
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="agent@resistance.net"
                   disabled={isLoading}
                   className="w-full"
                   color="orange"

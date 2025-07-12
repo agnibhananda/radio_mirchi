@@ -154,7 +154,7 @@ function TypewriterText({ text, speed = 50 }: TypewriterTextProps) {
   );
 }
 
-export default function UpdatedHeroSection() {
+export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBreach: () => void }) {
   const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -183,39 +183,15 @@ export default function UpdatedHeroSection() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [aboutOpen, leaderboardOpen]);
 
-    const [showMain, setShowMain] = useState(false);
-    const handleRegistrationComplete = () => {
-          setShowMain(true)
-          router.push('/terminal');
-          
-  };
-
   const handleInitiate = () => {
     const audio = new Audio('/sfx/select.mp3');
     audio.play();
     setTimeout(() => {
-      setShowMain(true);
+      onInitiateBreach();
     }, 120);
   };
 
-
-  const handleRegistrationSuccess = (user: any) => {
-    setRegistrationOpen(false);
-    setTimeout(() => {
-      router.push('/terminal');
-    }, 500);
-  };
-
-  const handleSkipRegistration = () => {
-    setRegistrationOpen(false);
-    setTimeout(() => {
-      router.push('/terminal');
-    }, 500);
-  };
-
-  return (showMain ? (
-  <RegisterSection onComplete={handleRegistrationComplete} />
-) : (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 relative overflow-hidden">
       {/* Laptop Bezel */}
       <div className="absolute inset-0 p-4 md:p-8 lg:p-12">
@@ -402,27 +378,10 @@ export default function UpdatedHeroSection() {
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} anchorRef={infoButtonRef as React.RefObject<HTMLButtonElement>} />
       <LeaderboardPopup isOpen={leaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
-      
-      {/* Registration Modal */}
-      {registrationOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md">
-            <RegisterForm onRegistrationSuccess={handleRegistrationSuccess} />
-            <div className="text-center mt-4">
-              <button
-                onClick={handleSkipRegistration}
-                className="px-6 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors border border-gray-300"
-              >
-                Continue as Guest
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>)
+    </div>
   );
 }

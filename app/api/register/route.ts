@@ -6,7 +6,21 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if request has a body
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Content-Type must be application/json' 
+        },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
+    console.log('Register request body:', body); // Debug log
+    
     const { name, email, password } = body;
 
     // Basic validation

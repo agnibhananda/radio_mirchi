@@ -39,8 +39,7 @@ const UserSchema: Schema = new Schema({
   timestamps: true
 });
 
-// Create index for better query performance
+// Create index for better query performance (only score index, email is already indexed by unique: true)
 UserSchema.index({ score: -1 });
-UserSchema.index({ email: 1 });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

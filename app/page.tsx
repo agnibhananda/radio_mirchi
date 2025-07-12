@@ -4,19 +4,23 @@ import RegisterSection from './components/RegisterSection';
 import UpdatedHeroSection from './components/HeroSection';
 
 export default function Home() {
-  const [showMain, setShowMain] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+
+  const handleInitiateBreach = () => {
+    setShowRegistration(true);
+  };
 
   const handleRegistrationComplete = () => {
-    setShowMain(true);
+    setShowRegistration(false);
   };
 
   return (
     <div>
-      {/* {!showMain ? (
+      {showRegistration ? (
         <RegisterSection onComplete={handleRegistrationComplete} />
-      ) : ( */}
-        <UpdatedHeroSection />
-      {/* )} */}
+      ) : (
+        <UpdatedHeroSection onInitiateBreach={handleInitiateBreach} />
+      )}
     </div>
   );
 }
