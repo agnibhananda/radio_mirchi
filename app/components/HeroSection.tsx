@@ -182,7 +182,11 @@ export default function UpdatedHeroSection() {
   }, [aboutOpen, leaderboardOpen]);
 
   const handleInitiate = () => {
-    router.push('/terminal');
+    const audio = new window.Audio('/sfx/select.mp3');
+    audio.play();
+    setTimeout(() => {
+      router.push('/terminal');
+    }, 120); // Let the sound play for a short moment before routing
   };
 
   return (
