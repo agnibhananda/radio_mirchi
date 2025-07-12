@@ -36,9 +36,9 @@ A narrative-driven, pixel-styled browser game where players act as underground a
 ## 🎯 Success Metrics
 
 ### MVP 1
-- [.] Terminal opens and accepts commands
-- [.] Basic frequency scanning works
-- [.] Retro UI aesthetic achieved
+- [x] Terminal opens and accepts commands
+- [x] Basic frequency scanning works
+- [x] Retro UI aesthetic achieved
 
 ### MVP 2
 - [ ] AI host responds coherently
