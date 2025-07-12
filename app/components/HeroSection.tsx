@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 const palette = {
   bg: '#fefcf3',
@@ -71,7 +72,12 @@ const RadioIcon = ({ animate = false }) => {
 };
 
 // Info Modal
-function AboutModal({ open, onClose }) {
+interface AboutModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+function AboutModal({ open, onClose }: AboutModalProps) {
   const [displayed, setDisplayed] = useState('');
   const [showCursor, setShowCursor] = useState(true);
   const aboutText = `Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's infenses.`;
@@ -131,7 +137,11 @@ function AboutModal({ open, onClose }) {
 }
 
 // Animated Status
-function AnimatedStatus({ loading }) {
+interface AnimatedStatusProps {
+  loading: boolean;
+}
+
+function AnimatedStatus({ loading }: AnimatedStatusProps) {
   const [dots, setDots] = useState('');
   const [blink, setBlink] = useState(true);
   
@@ -163,7 +173,12 @@ function AnimatedStatus({ loading }) {
 }
 
 // Typewriter Text
-function TypewriterText({ text, speed = 50 }) {
+interface TypewriterTextProps {
+  text: string;
+  speed?: number;
+}
+
+function TypewriterText({ text, speed = 50 }: TypewriterTextProps) {
   const [displayed, setDisplayed] = useState('');
   const [showCursor, setShowCursor] = useState(true);
   
@@ -190,11 +205,20 @@ function TypewriterText({ text, speed = 50 }) {
 }
 
 // Floating Particles
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  speed: number;
+  opacity: number;
+}
+
 function FloatingParticles() {
-  const [particles, setParticles] = useState([]);
+  const [particles, setParticles] = useState<Particle[]>([]);
   
   useEffect(() => {
-    const newParticles = Array.from({ length: 8 }, (_, i) => ({
+    const newParticles: Particle[] = Array.from({ length: 8 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -238,6 +262,7 @@ function FloatingParticles() {
 }
 
 export default function HeroSection() {
+  const router = useRouter();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [radioAnimate, setRadioAnimate] = useState(false);
@@ -251,7 +276,7 @@ export default function HeroSection() {
   }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && aboutOpen) {
         setAboutOpen(false);
       }
@@ -262,8 +287,7 @@ export default function HeroSection() {
   }, [aboutOpen]);
 
   const handleInitiate = () => {
-    // router.push('/terminal');
-    console.log('Initiating infiltration...');
+    router.push('/terminal');
   };
 
   return (

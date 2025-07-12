@@ -1,250 +1,539 @@
 "use client";
 import React, { useRef, useState, useEffect } from 'react';
-import { Popup, Input } from 'pixel-retroui';
+import StationPopup from '../components/StationPopup';
 
-const CRT_GREEN = '#39ff14';
-const CRT_BG = '#101c11';
-const CRT_AMBER = '#ffb347';
-const CRT_FONT = {
-  fontFamily: '"Press Start 2P", "VT323", monospace',
+// Consistent retro color palette
+const RETRO_COLORS = {
+  GREEN: '#00ff41',       // Matrix green
+  AMBER: '#ffb000',       // Retro amber
+  CYAN: '#00ffff',        // Bright cyan
+  MAGENTA: '#ff00ff',     // Hot magenta
+  ORANGE: '#ff8c00',      // Dark orange
+  PURPLE: '#9932cc',      // Dark orchid
+  RED: '#ff4500',         // Orange red
+  BLUE: '#1e90ff',        // Dodger blue
+  YELLOW: '#ffff00',      // Bright yellow
+  BG_DARK: '#0a0a0a',     // Very dark
+  BG_TERMINAL: '#1a1a1a', // Dark gray
+  PROMPT: '#00ff41',      // Green for prompt
 };
 
-const STATIONS = [
-  { name: '95.6 FM', desc: 'Synthwave' },
-  { name: '101.2 FM', desc: 'Mirchi' },
-  { name: '88.8 FM', desc: 'Chillwave ' },
+const RETRO_FONT = {
+  fontFamily: '"Courier New", "Monaco", "Menlo", monospace',
+  fontWeight: 'bold',
+};
+
+interface Station {
+  name: string;
+  desc: string;
+  color: string;
+}
+
+const STATIONS: Station[] = [
+  { name: '95.6 FM', desc: 'SYNTHWAVE NIGHTS', color: RETRO_COLORS.PURPLE },
+  { name: '101.2 FM', desc: 'RADIO MIRCHI', color: RETRO_COLORS.MAGENTA },
+  { name: '88.8 FM', desc: 'CHILLWAVE ZONE', color: RETRO_COLORS.CYAN },
+  { name: '107.5 FM', desc: 'NEON DREAMS', color: RETRO_COLORS.BLUE },
+  { name: '93.1 FM', desc: 'RETRO WAVE', color: RETRO_COLORS.ORANGE },
 ];
 
-// Scanline overlay
-const Scanlines = () => (
+// Retro scanlines
+const RetroScanlines = () => (
   <div
-    aria-hidden
     style={{
       pointerEvents: 'none',
       position: 'absolute',
       inset: 0,
-      zIndex: 2,
-      background:
-        'repeating-linear-gradient(0deg, rgba(57,255,20,0.08) 0px, rgba(57,255,20,0.08) 1px, transparent 1px, transparent 4px)',
+      zIndex: 1,
+      background: `
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,255,65,0.03) 0px,
+          rgba(0,255,65,0.03) 1px,
+          transparent 1px,
+          transparent 2px
+        )
+      `,
       mixBlendMode: 'screen',
-      opacity: 0.25,
+      opacity: 0.6,
     }}
   />
 );
 
-// Typewriter effect for output
-function Typewriter({ text, speed = 18, onDone }: { text: string; speed?: number; onDone?: () => void }) {
-  const [displayed, setDisplayed] = useState('');
-  useEffect(() => {
-    let i = 0;
-    setDisplayed('');
-    const interval = setInterval(() => {
-      setDisplayed(text.slice(0, i));
-      i++;
-      if (i > text.length) {
-        clearInterval(interval);
-        if (onDone) onDone?.();
-      }
-    }, speed);
-    return () => clearInterval(interval);
-  }, [text, speed, onDone]);
-  return <span>{displayed}</span>;
+// Typewriter effect for all text
+interface TypewriterTextProps {
+  text: string;
+  speed?: number;
+  delay?: number;
+  color?: string;
+  onComplete?: () => void;
 }
 
-// Blinking block cursor
-function BlinkingBlock() {
-  const [on, setOn] = useState(true);
+function TypewriterText({ text, speed = 30, delay = 0, color = RETRO_COLORS.GREEN, onComplete }: TypewriterTextProps) {
+  const [displayText, setDisplayText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
   useEffect(() => {
-    const t = setInterval(() => setOn((v) => !v), 500);
-    return () => clearInterval(t);
-  }, []);
-  return <span style={{ background: CRT_GREEN, color: CRT_GREEN, marginLeft: 2, display: 'inline-block', width: 13, height: 18, verticalAlign: 'middle', borderRadius: 2, opacity: on ? 1 : 0 }}>█</span>;
+    if (!text) {
+      setDisplayText('');
+      setIsComplete(true);
+      onComplete?.();
+      return;
+    }
+
+    // Only reset if text actually changed
+    if (displayText === text) {
+      return;
+    }
+
+    setDisplayText('');
+    setIsComplete(false);
+    
+    const startTimeout = setTimeout(() => {
+      let currentIndex = 0;
+      const typeInterval = setInterval(() => {
+        if (currentIndex < text.length) {
+          setDisplayText(text.substring(0, currentIndex + 1));
+          currentIndex++;
+        } else {
+          clearInterval(typeInterval);
+          setIsComplete(true);
+          onComplete?.();
+        }
+      }, speed);
+
+      return () => clearInterval(typeInterval);
+    }, delay);
+
+    return () => clearTimeout(startTimeout);
+  }, [text, speed, delay, onComplete]);
+
+  return (
+    <span style={{ color, textShadow: `0 0 10px ${color}40` }}>
+      {displayText}
+      {!isComplete && text && (
+        <span style={{ 
+          animation: 'blink 1s infinite',
+          color: color,
+          textShadow: `0 0 5px ${color}` 
+        }}>
+          █
+        </span>
+      )}
+    </span>
+  );
+}
+
+// Input field with inline cursor
+interface RetroInputProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  disabled: boolean;
+  promptText: string;
+}
+
+const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroInputProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    if (inputRef.current && !disabled) {
+      inputRef.current.focus();
+    }
+  }, [disabled]);
+
+  return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center',
+      background: RETRO_COLORS.BG_TERMINAL,
+      padding: '8px 12px',
+      border: `1px solid ${RETRO_COLORS.GREEN}`,
+      borderRadius: '4px',
+      boxShadow: `inset 0 0 10px ${RETRO_COLORS.GREEN}20`,
+    }}>
+      <span style={{ 
+        color: RETRO_COLORS.PROMPT, 
+        marginRight: 8,
+        ...RETRO_FONT,
+        textShadow: `0 0 5px ${RETRO_COLORS.PROMPT}`,
+      }}>
+        {promptText}
+      </span>
+      <div style={{ position: 'relative', flex: 1 }}>
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          disabled={disabled}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            color: RETRO_COLORS.GREEN,
+            ...RETRO_FONT,
+            fontSize: 14,
+            width: '100%',
+            caretColor: 'transparent', // Hide default cursor
+          }}
+          autoFocus
+          spellCheck={false}
+          autoComplete="off"
+        />
+        {/* Custom blinking cursor */}
+        <span
+          style={{
+            position: 'absolute',
+            left: `${value.length * 8.4}px`, // Approximate character width
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: RETRO_COLORS.GREEN,
+            animation: 'blink 1s infinite',
+            textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+        >
+          █
+        </span>
+      </div>
+    </div>
+  );
+};
+
+
+
+interface TerminalLine {
+  text: string;
+  color: string;
+  delay: number;
 }
 
 export default function TerminalPage() {
-  const [lines, setLines] = useState<string[]>([
-    'Welcome to RADIO MIRCHI Terminal Frequency v2.1',
-    'Type `help` to see available commands.',
+  const [lines, setLines] = useState<TerminalLine[]>([
+    { text: '╔══════════════════════════════════════════════════════════╗', color: RETRO_COLORS.CYAN, delay: 0 },
+    { text: '║            RADIO MIRCHI TERMINAL v3.0                   ║', color: RETRO_COLORS.MAGENTA, delay: 300 },
+    { text: '║               [UNDERGROUND AGENT MODE]                   ║', color: RETRO_COLORS.YELLOW, delay: 600 },
+    { text: '╚══════════════════════════════════════════════════════════╝', color: RETRO_COLORS.CYAN, delay: 900 },
+    { text: '', color: RETRO_COLORS.GREEN, delay: 1200 },
+    { text: '>>> MISSION BRIEF: INFILTRATE RADIO BROADCASTS <<<', color: RETRO_COLORS.GREEN, delay: 1500 },
+    { text: '>>> OBJECTIVE: DISRUPT AI PROPAGANDA <<<', color: RETRO_COLORS.RED, delay: 1800 },
+    { text: '>>> WARNING: AVOID DETECTION SYSTEMS <<<', color: RETRO_COLORS.ORANGE, delay: 2100 },
+    { text: '', color: RETRO_COLORS.GREEN, delay: 2400 },
+    { text: 'Type "help" for available commands.', color: RETRO_COLORS.AMBER, delay: 2700 },
+    { text: '', color: RETRO_COLORS.GREEN, delay: 3000 },
   ]);
+  
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [typing, setTyping] = useState(false);
-  const [connectedStation, setConnectedStation] = useState<string | null>(null);
-  const [stationPopup, setStationPopup] = useState<{ name: string; desc: string } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [connectedStation, setConnectedStation] = useState<Station | null>(null);
+  const [stationPopup, setStationPopup] = useState<Station | null>(null);
+  const [lineIndex, setLineIndex] = useState(0);
   const outputRef = useRef<HTMLDivElement>(null);
 
-  // Focus input on mount and after every render
+  // Auto-scroll to bottom
   useEffect(() => {
-    inputRef.current?.focus();
-  });
-
-  // Auto-scroll to bottom on new output
-  useEffect(() => {
-    outputRef.current?.scrollTo({ top: outputRef.current.scrollHeight });
+    if (outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
   }, [lines]);
 
-  // Handle enter
-  const handleEnter = () => {
-    if (!input.trim()) return;
-    setLines((prev) => [...prev, `radio-mirchi@terminal:~$ ${input}`]);
-    setHistory((prev) => [...prev, input]);
-    setInput('');
-    setTyping(true);
-    // Command logic
-    setTimeout(() => {
-      let output = '';
-      const lower = input.trim().toLowerCase();
-      if (lower === 'help') {
-        output = 'Available commands: help, show stations, connect <station>, clear, exit';
-      } else if (lower === 'show stations') {
-        output = 'Available stations:\n' + STATIONS.map(s => `- ${s.name}: ${s.desc}`).join('\n');
-      } else if (lower.startsWith('connect ')) {
-        const station = input.slice(8).trim().toLowerCase();
-        const found = STATIONS.find(s => {
-          const freq = s.name.toLowerCase().replace(/\s*fm/, '').trim();
-          return (
-            s.name.toLowerCase().includes(station) ||
-            s.desc.toLowerCase().includes(station) ||
-            freq.includes(station) ||
-            station.includes(freq)
-          );
-        });
-        if (found) {
-          setConnectedStation(found.name);
-          setStationPopup(found);
-          output = `Connected to ${found.name} (${found.desc})`;
-        } else {
-          output = `Station not found: ${input.slice(8).trim()}`;
-        }
-      } else if (lower === 'clear') {
-        setLines([]);
-        setTyping(false);
-        return;
-      } else if (lower === 'exit') {
-        output = 'Session ended. Refresh to restart.';
-      } else {
-        output = `Unknown command: ${input}`;
-      }
-      setLines((prev) => [...prev, ...output.split('\n')]);
-      setTyping(false);
-    }, 600);
+  const addLines = (newLines: TerminalLine[]) => {
+    let delay = 0;
+    newLines.forEach(line => {
+      setTimeout(() => {
+        setLines(prev => [...prev, { ...line, delay: 0 }]);
+      }, delay);
+      delay += line.text ? 200 : 100;
+    });
   };
 
-  // Handle up arrow for history
+  const handleCommand = (command: string) => {
+    const cmd = command.trim().toLowerCase();
+    
+    if (cmd === 'help') {
+      addLines([
+        { text: '╭─ AVAILABLE COMMANDS ─────────────────────────────╮', color: RETRO_COLORS.CYAN, delay: 0 },
+        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
+        { text: '│  help           - Show this help screen         │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  stations       - List all radio stations       │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  connect <n>    - Connect to station            │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  disconnect     - Disconnect from station       │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  status         - Show connection status        │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  clear          - Clear terminal screen         │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│  exit           - Exit terminal                  │', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
+        { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.CYAN, delay: 0 },
+        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+      ]);
+    } else if (cmd === 'stations') {
+      addLines([
+        { text: '╭─ RADIO STATIONS ─────────────────────────────────╮', color: RETRO_COLORS.PURPLE, delay: 0 },
+        { text: '│                                                  │', color: RETRO_COLORS.PURPLE, delay: 0 },
+        ...STATIONS.map(station => ({
+          text: `│  📻 ${station.name.padEnd(12)} - ${station.desc.padEnd(20)} │`,
+          color: station.color,
+          delay: 0
+        })),
+        { text: '│                                                  │', color: RETRO_COLORS.PURPLE, delay: 0 },
+        { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.PURPLE, delay: 0 },
+        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: 'Use "connect <station>" to infiltrate broadcasts!', color: RETRO_COLORS.AMBER, delay: 0 },
+        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+      ]);
+    } else if (cmd.startsWith('connect ')) {
+      const query = command.slice(8).trim().toLowerCase();
+      const station = STATIONS.find(s => 
+        s.name.toLowerCase().includes(query) ||
+        s.desc.toLowerCase().includes(query) ||
+        query.includes(s.name.toLowerCase().replace(/\s*fm/, '').trim())
+      );
+      
+      if (station) {
+        setConnectedStation(station);
+        setTimeout(() => setStationPopup(station), 500);
+        addLines([
+          { text: `>>> INFILTRATING ${station.name} <<<`, color: station.color },
+          { text: `>>> FREQUENCY LOCKED <<<`, color: RETRO_COLORS.GREEN },
+          { text: `>>> TARGET: ${station.desc} <<<`, color: station.color },
+          { text: `>>> WARNING: AI SECURITY ACTIVE <<<`, color: RETRO_COLORS.RED },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+      } else {
+        addLines([
+          { text: `>>> ERROR: STATION NOT FOUND <<<`, color: RETRO_COLORS.RED },
+          { text: `>>> SEARCH QUERY: ${query.toUpperCase()} <<<`, color: RETRO_COLORS.RED },
+          { text: 'Type "stations" to see available frequencies.', color: RETRO_COLORS.AMBER },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+      }
+    } else if (cmd === 'disconnect') {
+      if (connectedStation) {
+        addLines([
+          { text: `>>> DISCONNECTING FROM ${connectedStation.name} <<<`, color: RETRO_COLORS.ORANGE },
+          { text: `>>> FREQUENCY RELEASED <<<`, color: RETRO_COLORS.GREEN },
+          { text: `>>> MISSION STATUS: STEALTH MODE <<<`, color: RETRO_COLORS.GREEN },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+        setConnectedStation(null);
+      } else {
+        addLines([
+          { text: `>>> ERROR: NO ACTIVE CONNECTION <<<`, color: RETRO_COLORS.RED },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+      }
+    } else if (cmd === 'status') {
+      if (connectedStation) {
+        addLines([
+          { text: '╭─ INFILTRATION STATUS ──────────────────────────────╮', color: RETRO_COLORS.BLUE },
+          { text: `│  STATUS: CONNECTED                               │`, color: RETRO_COLORS.GREEN },
+          { text: `│  TARGET: ${connectedStation.name.padEnd(36)} │`, color: connectedStation.color },
+          { text: `│  BROADCAST: ${connectedStation.desc.padEnd(36)} │`, color: connectedStation.color },
+          { text: `│  SIGNAL: STRONG                                  │`, color: RETRO_COLORS.GREEN },
+          { text: `│  STEALTH: ACTIVE                                 │`, color: RETRO_COLORS.GREEN },
+          { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.BLUE },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+      } else {
+        addLines([
+          { text: '╭─ INFILTRATION STATUS ──────────────────────────────╮', color: RETRO_COLORS.BLUE },
+          { text: `│  STATUS: DISCONNECTED                            │`, color: RETRO_COLORS.RED },
+          { text: `│  TARGET: NONE                                    │`, color: RETRO_COLORS.RED },
+          { text: `│  STEALTH: STANDBY                               │`, color: RETRO_COLORS.AMBER },
+          { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.BLUE },
+          { text: '', color: RETRO_COLORS.GREEN },
+        ]);
+      }
+    } else if (cmd === 'clear') {
+      setLines([]);
+    } else if (cmd === 'exit') {
+      addLines([
+        { text: '>>> TERMINATING INFILTRATION <<<', color: RETRO_COLORS.RED },
+        { text: '>>> MISSION LOG SAVED <<<', color: RETRO_COLORS.MAGENTA },
+        { text: '>>> KEEP THE RESISTANCE ALIVE! <<<', color: RETRO_COLORS.PURPLE },
+        { text: '', color: RETRO_COLORS.GREEN },
+        { text: 'Session terminated. Refresh to restart.', color: RETRO_COLORS.AMBER },
+        { text: '', color: RETRO_COLORS.GREEN },
+      ]);
+    } else {
+      addLines([
+        { text: `>>> UNKNOWN COMMAND: ${command.toUpperCase()} <<<`, color: RETRO_COLORS.RED },
+        { text: 'Type "help" for available commands.', color: RETRO_COLORS.AMBER },
+        { text: '', color: RETRO_COLORS.GREEN },
+      ]);
+    }
+  };
+
+  const handleEnter = () => {
+    if (!input.trim() || typing) return;
+    
+    const command = input.trim();
+    setLines(prev => [...prev, { 
+      text: `radio-mirchi@terminal:~$ ${command}`, 
+      color: RETRO_COLORS.PROMPT,
+      delay: 0 
+    }]);
+    
+    setHistory(prev => [...prev, command]);
+    setHistoryIndex(-1);
+    setInput('');
+    setTyping(true);
+    
+    setTimeout(() => {
+      handleCommand(command);
+      setTyping(false);
+    }, 500);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleEnter();
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
       if (history.length > 0) {
-        setInput(history[history.length - 1]);
+        const newIndex = historyIndex === -1 ? history.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setInput(history[newIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex !== -1) {
+        const newIndex = historyIndex < history.length - 1 ? historyIndex + 1 : -1;
+        setHistoryIndex(newIndex);
+        setInput(newIndex === -1 ? '' : history[newIndex]);
       }
     }
   };
 
   return (
-    <div
-      className="fixed inset-0 w-full h-full flex flex-col bg-black"
-      style={{
-        background: `radial-gradient(ellipse at 60% 40%, ${CRT_BG} 60%, #0a0f0a 100%)`,
-        minHeight: '100vh',
-        minWidth: '100vw',
-      }}
-    >
-      {/* CRT scanlines overlay */}
-      <Scanlines />
-      {/* Output area */}
-      <div
-        ref={outputRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '2.5vh 2vw 0 2vw',
-          ...CRT_FONT,
-          color: CRT_GREEN,
-          fontSize: 13,
-          lineHeight: 1.7,
-          letterSpacing: '0.02em',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-        }}
-      >
-        {lines.map((line, i) =>
-          line ? (
-            <div key={i} style={{marginBottom:2}}>
-              <Typewriter text={line} speed={12} />
-            </div>
-          ) : (
-            <div key={i} style={{height:18}} />
-          )
-        )}
-        {connectedStation && (
-          <div style={{marginTop:16,color:CRT_AMBER,fontSize:13}}>
-            Listening to <b>{connectedStation}</b>... 
-          </div>
-        )}
-      </div>
-      {/* Prompt/input at bottom */}
+    <>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+        
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: ${RETRO_COLORS.GREEN} ${RETRO_COLORS.BG_TERMINAL};
+        }
+        
+        *::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        *::-webkit-scrollbar-track {
+          background: ${RETRO_COLORS.BG_TERMINAL};
+        }
+        
+        *::-webkit-scrollbar-thumb {
+          background: ${RETRO_COLORS.GREEN};
+          border-radius: 4px;
+        }
+      `}</style>
+      
       <div
         style={{
-          width: '100%',
-          padding: '0.5vh 2vw 2.5vh 2vw',
-          background: 'rgba(16,28,17,0.98)',
-          borderTop: `1.5px solid ${CRT_GREEN}`,
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
+          background: `linear-gradient(135deg, ${RETRO_COLORS.BG_DARK} 0%, ${RETRO_COLORS.BG_TERMINAL} 100%)`,
           display: 'flex',
-          alignItems: 'center',
-          ...CRT_FONT,
-          fontSize: 13,
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
-        <span style={{color:CRT_GREEN,marginRight:8}}>{'radio-mirchi@terminal:~$'}</span>
-        <Input
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          bg="#101c11"
-          textColor="#39ff14"
-          borderColor="#39ff14"
-          className="w-full px-2 py-1 font-mono text-xs outline-none focus:ring-0 focus:outline-none"
-          autoFocus
-          spellCheck={false}
-          autoComplete="off"
+        <RetroScanlines />
+        
+        {/* Main terminal area */}
+        <div
+          ref={outputRef}
           style={{
-            ...CRT_FONT,
-            background:'transparent',
-            border:'none',
-            outline:'none',
-            color:CRT_GREEN,
-            fontSize:13,
-            width:'100%',
-            caretColor:CRT_GREEN,
-            letterSpacing:'0.02em',
-            padding:0,
+            flex: 1,
+            overflowY: 'auto',
+            padding: '20px',
+            ...RETRO_FONT,
+            fontSize: 14,
+            lineHeight: 1.6,
+            position: 'relative',
+            zIndex: 2,
           }}
+        >
+          {lines.map((line, i) => (
+            <div key={`line-${i}-${line.text}`} style={{ marginBottom: line.text ? 4 : 12 }}>
+              {line.text ? (
+                <TypewriterText
+                  key={`typewriter-${i}-${line.text}`}
+                  text={line.text}
+                  speed={25}
+                  delay={line.delay}
+                  color={line.color}
+                  onComplete={() => {}}
+                />
+              ) : (
+                <div style={{ height: 20 }} />
+              )}
+            </div>
+          ))}
+          
+          {connectedStation && (
+            <div style={{ 
+              marginTop: 16, 
+              padding: '12px', 
+              border: `2px solid ${connectedStation.color}`,
+              borderRadius: '6px',
+              background: `${connectedStation.color}20`,
+              position: 'relative',
+            }}>
+              <TypewriterText
+                key={`connected-${connectedStation.name}`}
+                text={`🎵 INFILTRATING: ${connectedStation.name} - ${connectedStation.desc} 🎵`}
+                speed={40}
+                color={connectedStation.color}
+                onComplete={() => {}}
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Input area */}
+        <div style={{ 
+          padding: '16px 20px', 
+          background: `${RETRO_COLORS.BG_TERMINAL}dd`,
+          borderTop: `2px solid ${RETRO_COLORS.GREEN}`,
+          position: 'relative',
+          zIndex: 2,
+        }}>
+          <RetroInput
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={typing}
+            promptText="radio-mirchi@terminal:~$"
+          />
+        </div>
+        
+        {/* Station popup */}
+        <StationPopup
+          isOpen={!!stationPopup}
+          onClose={() => setStationPopup(null)}
+          station={stationPopup}
         />
-        <BlinkingBlock />
       </div>
-      {/* Station Popup */}
-      <Popup
-        isOpen={!!stationPopup}
-        onClose={() => setStationPopup(null)}
-        bg="#101c11"
-        baseBg="#181f18"
-        textColor="#39ff14"
-        borderColor="#39ff14"
-        className="flex flex-col items-center justify-center"
-      >
-        <h2 style={{ fontFamily: 'inherit', fontSize: 18, marginBottom: 8, color: '#39ff14', letterSpacing: '0.04em' }}>
-          {stationPopup?.name}
-        </h2>
-        <div style={{ fontFamily: 'inherit', fontSize: 14, marginBottom: 12 }}>
-          {stationPopup?.desc}
-        </div>
-        <div style={{ fontFamily: 'inherit', fontSize: 12, color: '#39ff14', opacity: 0.7 }}>
-          (Radio window)
-        </div>
-      </Popup>
-    </div>
+    </>
   );
-} 
+}
