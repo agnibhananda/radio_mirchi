@@ -1,21 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToMongoose } from '@/lib/mongodb';
 import User from '@/lib/models/User';
-import { validateRegistrationData, sanitizeInput } from '@/lib/utils/validation';
+import { sanitizeInput } from '@/lib/utils/validation';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email } = body;
+    const { name, email, password } = body;
 
-    // Validate input data
-    const validationErrors = validateRegistrationData({ name, email });
-    if (validationErrors.length > 0) {
+    // Basic validation
+    if (!name || !email || !password) {
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Validation failed', 
-          errors: validationErrors 
+          message: 'Name, email, and password are required' 
+        },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Password must be at least 6 characters long' 
         },
         { status: 400 }
       );
@@ -40,10 +49,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     // Create new user
     const newUser = new User({
       name: sanitizedName,
       email: sanitizedEmail,
+      password: hashedPassword,
       score: 0
     });
 

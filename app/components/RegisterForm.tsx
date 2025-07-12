@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { Card, Input, Button } from 'pixel-retroui';
 
 interface RegisterFormProps {
   onRegistrationSuccess: (user: any) => void;
@@ -8,167 +9,230 @@ interface RegisterFormProps {
 interface FormData {
   name: string;
   email: string;
+  password: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
+  password?: string;
   general?: string;
 }
 
 export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProps) {
-  const [formData, setFormData] = useState<FormData>({ name: '', email: '' });
+  const [formData, setFormData] = useState<FormData>({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsLoading(true);
     setErrors({});
 
+    // Simple validation
+    const newErrors: FormErrors = {};
+    if (mode === 'signup' && !formData.name.trim()) {
+      newErrors.name = 'Agent name is required';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (mode === 'signup' && formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    // Simulate API call
     try {
-      // Simulate API call for demo purposes
-      // In a real app, you'd make an actual API call here
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Simulate successful registration
-      const mockUser = {
-        name: formData.name,
-        email: formData.email,
-        id: Date.now().toString()
-      };
-      
+      // Simulate successful registration/login
       setIsSuccess(true);
-      onRegistrationSuccess(mockUser);
-      setFormData({ name: '', email: '' });
+      const user = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: formData.name || formData.email.split('@')[0],
+        email: formData.email
+      };
+      onRegistrationSuccess(user);
+      setFormData({ name: '', email: '', password: '' });
       
     } catch (error) {
-      console.error('Registration error:', error);
       setErrors({ general: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const isFormValid = formData.email.trim() && formData.password.trim() && (mode === 'signin' || formData.name.trim());
+
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-gradient-to-br from-white to-orange-50 rounded-2xl shadow-xl border border-orange-200 overflow-hidden">
-        <div className="p-8">
+      <Card
+        bg="#fffbe6"
+        textColor="#ea580c"
+        borderColor="#e8dcc6"
+        shadowColor="#f5e7c6"
+        className="rounded-2xl shadow-2xl border overflow-hidden"
+      >
+        <div className="p-4">
           {/* Header */}
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-orange-200">
-              <span className="text-2xl">👤</span>
+          <div className="text-center mb-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 border-2 border-orange-200">
+              <span className="text-xl">👤</span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Join the Resistance</h2>
-            <p className="text-gray-600 text-sm">Register to track your infiltration progress</p>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">
+              {mode === 'signup' ? 'Join the Resistance' : 'Agent Login'}
+            </h2>
+            <p className="text-gray-600 text-xs">
+              {mode === 'signup' ? 'Register to track your infiltration progress' : 'Sign in to your agent account'}
+            </p>
           </div>
 
           {/* Success Message */}
           {isSuccess && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <span className="text-green-600">✓</span>
-                <span className="text-green-700 font-medium">Registration successful!</span>
+                <span className="text-green-700 font-medium text-sm">{mode === 'signup' ? 'Registration successful!' : 'Login successful!'}</span>
               </div>
             </div>
           )}
 
           {/* General Error */}
           {errors.general && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <span className="text-red-600">⚠</span>
-                <span className="text-red-700">{errors.general}</span>
+                <span className="text-red-700 text-sm">{errors.general}</span>
               </div>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name Field */}
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {mode === 'signup' && (
+                <div>
+                  <label htmlFor="name" className="block text-xs font-medium text-gray-700 mb-1">
+                    Agent Name
+                  </label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter your agent name"
+                    disabled={isLoading}
+                    className="w-full"
+                    color="orange"
+                    borderColor={errors.name ? "red" : "orange"}
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+                  )}
+                </div>
+              )}
+              <div>
+                <label htmlFor="email" className="block text-xs font-medium text-gray-700 mb-1">
+                  Secure Email
+                </label>
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="agent@resistance.net"
+                  disabled={isLoading}
+                  className="w-full"
+                  color="orange"
+                  borderColor={errors.email ? "red" : "orange"}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                )}
+              </div>
+            </div>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Agent Name
+              <label htmlFor="password" className="block text-xs font-medium text-gray-700 mb-1">
+                Password
               </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+              <Input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                  errors.name 
-                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-                }`}
-                placeholder="Enter your agent name"
+                placeholder={mode === 'signup' ? 'Create a password' : 'Enter your password'}
                 disabled={isLoading}
+                className="w-full"
+                color="orange"
+                borderColor={errors.password ? "red" : "orange"}
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600">{errors.password}</p>
               )}
             </div>
-
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Secure Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                  errors.email 
-                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 focus:ring-orange-500 focus:border-orange-500'
-                }`}
-                placeholder="agent@resistance.net"
-                disabled={isLoading}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <button
+            <Button
               type="submit"
-              disabled={isLoading || !formData.name.trim() || !formData.email.trim()}
-              className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-medium rounded-lg transition-all duration-200 disabled:cursor-not-allowed transform hover:scale-[1.02] disabled:hover:scale-100"
+              disabled={isLoading || !formData.email.trim() || (mode === 'signup' && (!formData.name.trim() || !formData.password.trim())) || (mode === 'signin' && !formData.password.trim())}
+              className="w-full"
+              color="primary"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Registering...</span>
+                  <span>{mode === 'signup' ? 'Registering...' : 'Signing in...'}</span>
                 </div>
               ) : (
-                'Join the Mission'
+                mode === 'signup' ? 'Join the Mission' : 'Sign In'
               )}
-            </button>
+            </Button>
           </form>
 
+          {/* Toggle Mode */}
+          <div className="mt-2 text-center">
+            <Button
+              type="button"
+              color="secondary"
+              className="w-full"
+              onClick={() => {
+                setMode(mode === 'signup' ? 'signin' : 'signup');
+                setErrors({});
+                setIsSuccess(false);
+              }}
+            >
+              {mode === 'signup' ? 'Already have an account? Sign In' : 'New agent? Register here'}
+            </Button>
+          </div>
+
           {/* Footer */}
-          <div className="mt-6 text-center">
+          <div className="mt-2 text-center">
             <p className="text-xs text-gray-500">
               Your data is encrypted and secure
             </p>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

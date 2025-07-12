@@ -31,7 +31,7 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 relative overflow-hidden">
       {/* Laptop Bezel - Same as HeroSection */}
-      <div className="absolute inset-0 p-8 md:p-10 lg:p-16">
+      <div className="absolute inset-0 p-4 md:p-8 lg:p-12">
         <div 
           className="w-full h-full rounded-3xl shadow-2xl relative"
           style={{
@@ -67,71 +67,59 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
                   ))}
                 </div>
 
-                {/* Main Content */}
-                <div className="relative z-10 min-h-full flex items-center justify-center p-6">
-                  <div className="w-full max-w-2xl">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                      <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1"></div>
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center border-2 border-orange-200">
-                          <span className="text-xl">🎯</span>
-                        </div>
-                        <div className="h-px bg-gradient-to-r from-transparent via-orange-300 to-transparent flex-1"></div>
+                {/* Main Content - Horizontal Flex Layout */}
+                <div className="relative z-10 min-h-full flex items-center justify-center p-4 md:p-8">
+                  <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-5xl mx-auto gap-8">
+                    {/* Mission Brief */}
+                    <div className="md:w-1/2 w-full flex flex-col items-center md:items-start text-center md:text-left mb-8 md:mb-0">
+                      <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mb-4">
+                        <span className="text-3xl">🎯</span>
                       </div>
-                      <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-                        Mission Registration
-                      </h1>
-                      <p className="text-lg text-gray-600 max-w-lg mx-auto">
+                      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mission Registration</h1>
+                      <p className="text-base md:text-lg text-gray-600 max-w-md">
                         Join the resistance and track your infiltration progress. Your data helps us monitor the effectiveness of our operations.
                       </p>
                     </div>
-
-                    {/* Registration Form */}
-                    <div className="flex justify-center mb-8">
+                    {/* Registration Form + Guest Option */}
+                    <div className="md:w-1/2 w-full flex flex-col items-center">
                       <RegisterForm onRegistrationSuccess={handleRegistrationSuccess} />
-                    </div>
-
-                    {/* Skip Option */}
-                    {showSkip && !currentUser && (
-                      <div className="text-center">
-                        <div className="inline-block p-4 bg-white bg-opacity-50 rounded-lg border border-orange-200">
-                          <p className="text-sm text-gray-600 mb-3">
+                      {showSkip && !currentUser && (
+                        <div className="inline-block p-3 bg-white bg-opacity-50 rounded-lg border border-orange-200 mt-4 w-full max-w-xs">
+                          <p className="text-xs text-gray-600 mb-2">
                             Want to proceed without registration?
                           </p>
                           <button
                             onClick={handleSkip}
-                            className="px-6 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors border border-gray-300"
+                            className="px-4 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors border border-gray-300 w-full"
                           >
                             Continue as Guest
                           </button>
                         </div>
-                      </div>
-                    )}
-
-                    {/* Success State */}
-                    {currentUser && (
-                      <div className="text-center">
-                        <div className="inline-block p-6 bg-green-50 rounded-lg border border-green-200">
-                          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-2xl">✅</span>
-                          </div>
-                          <h3 className="text-lg font-bold text-green-800 mb-2">
-                            Welcome to the Resistance, {currentUser.name}!
-                          </h3>
-                          <p className="text-green-700 mb-4">
-                            Your agent profile has been created. Proceeding to mission briefing...
-                          </p>
-                          <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Success State */}
+                {currentUser && (
+                  <div className="text-center mt-4">
+                    <div className="inline-block p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-2xl">✅</span>
+                      </div>
+                      <h3 className="text-base font-bold text-green-800 mb-1">
+                        Welcome to the Resistance, {currentUser.name}!
+                      </h3>
+                      <p className="text-green-700 mb-2 text-sm">
+                        Your agent profile has been created. Proceeding to mission briefing...
+                      </p>
+                      <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
           {/* Laptop details - Same as HeroSection */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs font-mono opacity-60">
             RETRO-TECH • MODEL RT-2024
@@ -149,3 +137,4 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
     </div>
   );
 }
+                
