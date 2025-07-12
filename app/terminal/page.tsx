@@ -133,6 +133,7 @@ interface RetroInputProps {
 
 const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
   
   useEffect(() => {
     if (inputRef.current && !disabled) {
@@ -164,6 +165,8 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
           value={value}
           onChange={onChange}
           onKeyDown={onKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           disabled={disabled}
           style={{
             background: 'transparent',
@@ -179,22 +182,24 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
           spellCheck={false}
           autoComplete="off"
         />
-        {/* Custom blinking cursor */}
-        <span
-          style={{
-            position: 'absolute',
-            left: `${value.length * 8.4}px`, // Approximate character width
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: RETRO_COLORS.GREEN,
-            animation: 'blink 1s infinite',
-            textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
-            fontSize: 14,
-            lineHeight: 1,
-          }}
-        >
-          █
-        </span>
+        {/* Custom blinking cursor - only show when focused */}
+        {isFocused && (
+          <span
+            style={{
+              position: 'absolute',
+              left: `${value.length * 8.4}px`, // Approximate character width
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: RETRO_COLORS.GREEN,
+              animation: 'blink 1s infinite',
+              textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
+              fontSize: 14,
+              lineHeight: 1,
+            }}
+          >
+            █
+          </span>
+        )}
       </div>
     </div>
   );
