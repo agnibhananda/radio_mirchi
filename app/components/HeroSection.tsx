@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import LeaderboardPopup from './LeaderboardPopup';
 import RegisterForm from './RegisterForm';
 import { Button, Popup, Card } from 'pixel-retroui';
-
+import RegisterSection from '../components/RegisterSection';
 const palette = {
   bg: '#fefcf3',
   secondary: '#f5f1e8',
@@ -183,13 +183,21 @@ export default function UpdatedHeroSection() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [aboutOpen, leaderboardOpen]);
 
+    const [showMain, setShowMain] = useState(false);
+    const handleRegistrationComplete = () => {
+          setShowMain(true)
+          router.push('/terminal');
+          
+  };
+
   const handleInitiate = () => {
-    const audio = new window.Audio('/sfx/select.mp3');
+    const audio = new Audio('/sfx/select.mp3');
     audio.play();
     setTimeout(() => {
-      setRegistrationOpen(true);
+      setShowMain(true);
     }, 120);
   };
+
 
   const handleRegistrationSuccess = (user: any) => {
     setRegistrationOpen(false);
@@ -205,7 +213,9 @@ export default function UpdatedHeroSection() {
     }, 500);
   };
 
-  return (
+  return (showMain ? (
+  <RegisterSection onComplete={handleRegistrationComplete} />
+) : (
     <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 relative overflow-hidden">
       {/* Laptop Bezel */}
       <div className="absolute inset-0 p-4 md:p-8 lg:p-12">
@@ -413,6 +423,6 @@ export default function UpdatedHeroSection() {
           </div>
         </div>
       )}
-    </div>
+    </div>)
   );
 }
