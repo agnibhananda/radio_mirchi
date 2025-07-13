@@ -43,7 +43,7 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
   }, [open]);
 
   if (!open) return null;
-  
+
   return (
     <>
       {/* Backdrop */}
@@ -64,8 +64,8 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
       />
       
       {/* Popup */}
-      <div 
-        style={{
+    <div 
+      style={{
           position: 'fixed',
           top: '50%',
           left: '50%',
@@ -73,35 +73,35 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
           zIndex: 1000,
           width: '90vw',
           maxWidth: 500,
-          opacity: visible ? 1 : 0,
+        opacity: visible ? 1 : 0,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           pointerEvents: visible ? 'auto' : 'none',
-        }}
+      }}
         className="drop-shadow-2xl"
+    >
+      <Popup
+        isOpen={open}
+        onClose={onClose}
+        bg="#fefcd0"
+        baseBg="#f5f1e8"
+        textColor="#2c1810"
+        borderColor="#e8dcc6"
+        className="w-full"
       >
-          <Popup
-            isOpen={open}
-            onClose={onClose}
-            bg="#fefcd0"
-            baseBg="#f5f1e8"
-            textColor="#2c1810"
-            borderColor="#e8dcc6"
-            className="w-full"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xl font-bold text-orange-800">Mission Brief</span>
-            </div>
-            <div>
-              Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
-            </div>
-            <div className="mt-4 text-right">
-              <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
-            </div>
-          </Popup>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xl font-bold text-orange-800">Mission Brief</span>
         </div>
+        <div>
+          Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
+        </div>
+        <div className="mt-4 text-right">
+          <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
+        </div>
+      </Popup>
+    </div>
       </>
-    );
-  }
+  );
+}
 
 // Animated Status
 interface AnimatedStatusProps {
