@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Rnd } from 'react-rnd';
 import { Visualizer } from 'react-sound-visualizer';
-import { Card, ProgressBar, Button } from 'pixel-retroui';
+import { Card, ProgressBar, Button, Input } from 'pixel-retroui';
 import { useAudio } from '../../lib/hooks/useAudio';
 import { useLocalStorage } from '../../lib/hooks/useLocalStorage';
 import AudioPlayer from '../../lib/utils/audioPlayer';
@@ -32,23 +32,21 @@ interface StationPopupProps {
 }
 
 const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, users }) => {
-  const [listenerCount, setListenerCount] = useState(1236);
+  const [initialListeners, setInitialListeners] = useState(0);
+  const [awakenedListeners, setAwakenedListeners] = useState(1236);
   const [questioningMeter, setQuestioningMeter] = useState(148);
-  const [recording, setRecording] = useState(false);
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  const [audioLevel, setAudioLevel] = useState(0); // 0-1
-  const [isPressed, setIsPressed] = useState(false);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [message, setMessage] = useState('');
+  const [timeLeft, setTimeLeft] = useState(180);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionProgress, setConnectionProgress] = useState(0);
   const [missionId, setMissionId] = useLocalStorage<string | null>('missionId', null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [missionStatus, setMissionStatus] = useState<string | null>(null);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [isLoadingMission, setIsLoadingMission] = useState(true); // New state for overall mission loading
   const [connectionError, setConnectionError] = useState(false); // New state for connection errors
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const webSocketRef = useRef<WebSocket | null>(null); // Ref for WebSocket instance
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioPlayerRef = useRef<AudioPlayer | null>(null);
 
   const { play: playSelect } = useAudio('/sfx/select.mp3');
@@ -252,17 +250,42 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
     }
   }, [isOpen, missionId, missionStatus]);
 
+  const [showTimeoutPopup, setShowTimeoutPopup] = useState(false);
+
   // Timer effect
   useEffect(() => {
-    if (isOpen && !isConnecting) {
-      const timer = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
+    let timer: NodeJS.Timeout | null = null;
+    if (isOpen && !isConnecting && !showTimeoutPopup) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) { // Check for 1 because it will decrement to 0
+            if (timer) clearInterval(timer);
+            webSocketRef.current?.close();
+            onClose(); // Close the main station popup
+            setShowTimeoutPopup(true);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-      return () => clearInterval(timer);
-    } else {
-      setElapsedTime(0);
+    } else if (!isOpen || isConnecting || showTimeoutPopup) {
+      setTimeLeft(180); // Reset timer when popup is closed, connecting, or timeout popup is shown
     }
-  }, [isOpen, isConnecting]);
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isOpen, isConnecting, showTimeoutPopup, onClose]);
+
+  // Success condition effect
+  useEffect(() => {
+    if (initialListeners > 0 && awakenedListeners >= initialListeners / 2) {
+      console.log('Mission Success! Awakened listeners reached target.');
+      webSocketRef.current?.close();
+      onClose(); // Close the main station popup
+      setShowSuccessPopup(true);
+    }
+  }, [awakenedListeners, initialListeners, onClose]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -271,142 +294,45 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setListenerCount(prev => prev + Math.floor(Math.random() * 3) - 1);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const TimeoutPopup: React.FC = () => (
+    <Rnd
+      default={{
+        x: window.innerWidth / 2 - 200,
+        y: window.innerHeight / 2 - 100,
+        width: 400,
+        height: 200,
+      }}
+      minWidth={300}
+      minHeight={150}
+      bounds="window"
+      className="z-50"
+    >
+      <Card
+        className="w-full h-full flex flex-col p-5"
+        bg="#fefcd0"
+      >
+        <div className="flex-none p-4 border-b-2 border-gray-700 text-center text-xl font-bold">
+          Time Out!
+        </div>
+        <div className="flex-grow flex flex-col items-center justify-center p-4 mb-8 text-center">
+          <p className="text-xl font-bold mb-4">Mission Failed! You ran out of time.</p>
+          <Button onClick={() => setShowTimeoutPopup(false)}>
+            Close
+          </Button>
+        </div>
+      </Card>
+    </Rnd>
+  );
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        playSelect(); // Play select sound
-        handleClose();
-      }
-      // Only trigger push-to-talk if not focused on input/textarea
-      const active = document.activeElement;
-      const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute('contenteditable') === 'true');
-      if (!isInput && (e.key === ' ' || e.code === 'Space')) {
-        e.preventDefault();
-        if (!recording && !isPressed) {
-          setIsPressed(true);
-          startRecording();
-        }
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      const active = document.activeElement;
-      const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute('contenteditable') === 'true');
-      if (!isInput && (e.key === ' ' || e.code === 'Space')) {
-        e.preventDefault();
-        if (recording && isPressed) {
-          setIsPressed(false);
-          stopRecording();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [isOpen, handleClose, recording, isPressed]);
-
-  // Audio input logic
-  const startRecording = async () => {
-    if (recording || !webSocketRef.current || webSocketRef.current.readyState !== WebSocket.OPEN) {
-      if (!webSocketRef.current || webSocketRef.current.readyState !== WebSocket.OPEN) {
-        console.warn('[Mic] WebSocket not connected. Cannot start recording.');
-      }
-      return;
-    }
-
-    try {
-      console.log('[Mic] Starting recording...');
-      webSocketRef.current.send(JSON.stringify({ action: 'start_speech' }));
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-        },
-      });
-      setAudioStream(stream);
-      setRecording(true);
-
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0 && webSocketRef.current?.readyState === WebSocket.OPEN) {
-          webSocketRef.current.send(event.data);
-        }
-      };
-
-      recorder.start(100); // Collect 100ms of audio at a time
-    } catch (err) {
-      console.error('[Mic] Error starting recording:', err);
-      alert('Microphone access denied or an error occurred.');
+  // Handle sending messages
+  const handleSendMessage = () => {
+    if (message.trim() !== '' && webSocketRef.current?.readyState === WebSocket.OPEN) {
+      webSocketRef.current.send(JSON.stringify({ user_dialogue: message }));
+      console.log('[WebSocket] Sent user dialogue:', message);
+      setMessage(''); // Clear the input after sending
     }
   };
 
-  const stopRecording = () => {
-    if (!recording) return;
-
-    console.log('[Mic] Stopping recording...');
-    setRecording(false);
-
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-
-    if (webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
-      webSocketRef.current.send(JSON.stringify({ action: 'stop_speech' }));
-    }
-
-    if (audioStream) {
-      audioStream.getTracks().forEach(track => track.stop());
-      setAudioStream(null);
-    }
-    mediaRecorderRef.current = null;
-  };
-
-  useEffect(() => {
-    return () => {
-      stopRecording();
-    };
-    // eslint-disable-next-line
-  }, []);
-
-  // Mouse push-to-talk handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!recording && !isPressed) {
-      setIsPressed(true);
-      startRecording();
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (recording && isPressed) {
-      setIsPressed(false);
-      stopRecording();
-    }
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (recording && isPressed) {
-      setIsPressed(false);
-      stopRecording();
-    }
-  };
 
   // Remove demoUsers and ensure userList is based on actual users or empty
   const userList = users && users.length > 0 ? users : [];
@@ -418,6 +344,44 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
     if (userCount <= 9) return 'grid-cols-3';
     return 'grid-cols-4';
   };
+
+  if (showTimeoutPopup) {
+    return <TimeoutPopup />;
+  }
+
+  const SuccessPopup: React.FC = () => (
+    <Rnd
+      default={{
+        x: window.innerWidth / 2 - 200,
+        y: window.innerHeight / 2 - 100,
+        width: 400,
+        height: 200,
+      }}
+      minWidth={300}
+      minHeight={150}
+      bounds="window"
+      className="z-50"
+    >
+      <Card
+        className="w-full h-full flex flex-col"
+        style={{ backgroundColor: 'var(--pixel-retro-ui-bg-color)' }}
+      >
+        <div className="flex-none p-4 border-b-2 border-gray-700 text-center text-xl font-bold">
+          Mission Accomplished!
+        </div>
+        <div className="flex-grow flex flex-col items-center justify-center p-4 text-center">
+          <p className="text-xl font-bold mb-4">Mission Successful! You awakened the majority of the listeners. Good job!</p>
+          <Button onClick={() => setShowSuccessPopup(false)}>
+            Close
+          </Button>
+        </div>
+      </Card>
+    </Rnd>
+  );
+
+  if (showSuccessPopup) {
+    return <SuccessPopup />;
+  }
 
   const getTileHeight = (userCount: number) => {
     if (userCount <= 4) return 'h-32';
@@ -592,6 +556,11 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
             ) : (
               /* Normal Content */
               <>
+                {initialListeners > 0 && (
+                  <p className="text-sm text-gray-600 mb-2 text-center">
+                    Target: {Math.floor(initialListeners / 2)} Listeners
+                  </p>
+                )}
                 {/* Station Info */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -606,7 +575,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
                   {/* Timer */}
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-mono font-bold text-gray-700">{formatTime(elapsedTime)}</span>
+                    <span className="text-sm font-mono font-bold text-gray-700">{formatTime(timeLeft)}</span>
                   </div>
                 </div>
 
@@ -620,7 +589,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
                     className="flex-1 px-3 py-2 flex flex-col items-center"
                   >
                     <span className="text-[11px] font-bold text-blue-500 tracking-widest">LISTENERS</span>
-                    <span className="text-xl font-mono text-blue-700 font-bold mt-1">{listenerCount}</span>
+                    <span className="text-xl font-mono text-blue-700 font-bold mt-1">{awakenedListeners}</span>
                   </Card>
                   <Card
                     bg="#f3fbf6"
@@ -656,119 +625,24 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
                   </div>
                 )}
 
-                {/* User Tiles (Dynamic) */}
-                <div className={`grid ${getGridClass(userList.length)} gap-2 mb-4 max-h-64 overflow-y-auto`}>
-                  {userList.map((user, idx) => {
-                    // Color and border logic
-                    const borderColor = user.isSelf ? '#38bdf8' : '#facc15';
-                    const labelColor = user.isSelf ? 'text-blue-500' : 'text-yellow-500';
-                    const waveformColor = user.color || (user.isSelf ? '#38bdf8' : '#facc15');
-                    return (
-                      <Card
-                        key={`${user.name}-${idx}`}
-                        bg="#fff"
-                        textColor="#222"
-                        borderColor={borderColor}
-                        shadowColor="#e5e7eb"
-                        className={`relative flex flex-col justify-between ${getTileHeight(userList.length)} p-2`}
-                      >
-                        {/* Label */}
-                        <span className={`absolute top-1 left-2 text-xs font-bold ${labelColor} truncate max-w-[80%]`}>{user.name}</span>
-                        {/* Avatar and badge row */}
-                        <div className="flex items-end justify-between h-full">
-                          {/* Avatar */}
-                          <div className="flex flex-col justify-end">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt="avatar" className="w-12 h-12 rounded-full bg-gray-200 border border-gray-300" />
-                            ) : (
-                              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center border border-gray-300">
-                                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
-                                  <circle cx="10" cy="7" r="4" fill="#bbb" />
-                                  <rect x="4" y="13" width="12" height="5" rx="2.5" fill="#bbb" />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                          {/* Badge and waveform */}
-                          <div className="flex flex-col items-end justify-end">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-mono font-bold bg-white border border-gray-300 rounded-full px-1.5 py-0.5 text-gray-800">{user.badge || 'WBI'}</span>
-                              {/* Waveform */}
-                              {user.isSelf ? (
-                                recording && audioStream ? (
-                                  <Visualizer audio={audioStream} mode="continuous" autoStart slices={20} strokeColor={waveformColor}>
-                                    {({ canvasRef }) => (
-                                      <canvas ref={canvasRef} width={30} height={10} style={{ background: 'transparent', display: 'block' }} />
-                                    )}
-                                  </Visualizer>
-                                ) : (
-                                  <svg width="30" height="10" viewBox="0 0 30 10" fill="none">
-                                    <rect x="1" y="5" width="1.5" height="3" rx="0.75" fill={waveformColor} />
-                                    <rect x="3" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                    <rect x="5" y="4" width="1.5" height="4" rx="0.75" fill={waveformColor} />
-                                    <rect x="7" y="1" width="1.5" height="7" rx="0.75" fill={waveformColor} />
-                                    <rect x="9" y="3" width="1.5" height="5" rx="0.75" fill={waveformColor} />
-                                    <rect x="11" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                    <rect x="13" y="4" width="1.5" height="4" rx="0.75" fill={waveformColor} />
-                                    <rect x="15" y="1" width="1.5" height="7" rx="0.75" fill={waveformColor} />
-                                    <rect x="17" y="3" width="1.5" height="5" rx="0.75" fill={waveformColor} />
-                                    <rect x="19" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                  </svg>
-                                )
-                              ) : (
-                                <svg width="30" height="10" viewBox="0 0 30 10" fill="none">
-                                  <rect x="1" y="5" width="1.5" height="3" rx="0.75" fill={waveformColor} />
-                                  <rect x="3" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                  <rect x="5" y="4" width="1.5" height="4" rx="0.75" fill={waveformColor} />
-                                  <rect x="7" y="1" width="1.5" height="7" rx="0.75" fill={waveformColor} />
-                                  <rect x="9" y="3" width="1.5" height="5" rx="0.75" fill={waveformColor} />
-                                  <rect x="11" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                  <rect x="13" y="4" width="1.5" height="4" rx="0.75" fill={waveformColor} />
-                                  <rect x="15" y="1" width="1.5" height="7" rx="0.75" fill={waveformColor} />
-                                  <rect x="17" y="3" width="1.5" height="5" rx="0.75" fill={waveformColor} />
-                                  <rect x="19" y="2" width="1.5" height="6" rx="0.75" fill={waveformColor} />
-                                </svg>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-
-                {/* Push-to-Talk Button */}
-                <div className="flex-1 flex flex-col justify-end items-center pb-2">
-                  <div className="flex flex-col items-center">
-                    <button
-                      className={`w-24 h-24 rounded-full flex items-center justify-center border-4 shadow-md transition-all duration-75 select-none relative ${
-                        isPressed 
-                          ? 'bg-[#c5d2de] border-[#9fb5c9] transform translate-y-1 shadow-sm' 
-                          : 'bg-[#e0e7ef] border-[#b6c6d8] shadow-md'
-                      } ${recording ? 'ring-4 ring-red-400' : ''}`}
-                      onMouseDown={handleMouseDown}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseLeave}
-                      title="Push to Talk (Hold Space or Click & Hold)"
-                    >
-                      <div className={`absolute w-16 h-16 rounded-full transition-all duration-75 ${
-                        isPressed ? 'bg-[#9fb5c9]' : 'bg-[#b6c6d8]'
-                      }`}></div>
-                      <img src="/mic.png" alt="Microphone" className="w-12 h-12 relative z-10" />
-                      {recording && (
-                        <span className="absolute bottom-3 right-3 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
-                      )}
-                    </button>
-                    <span className="text-xs font-mono font-bold text-gray-600 mt-2 tracking-wider">
-                      PUSH TO TALK
-                    </span>
-                    <span className="text-xs font-mono text-gray-500 mt-1">
-                      Hold SPACE or Click & Hold
-                    </span>
-                  </div>
-                </div>
               </>
             )}
+          </div>
+
+          {/* Message Input and Send Button */}
+          <div className="absolute bottom-4 left-0 right-0 mx-auto z-10 flex gap-2 w-11/12 max-w-[420px]">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1"
+              bg="#fefcf3"
+              textColor="#000000"
+              borderColor="#e8dcc6"
+            />
+            <Button color="primary" onClick={() => console.log('Send message:', message)}>
+              Send
+            </Button>
           </div>
         </div>
       </Rnd>
