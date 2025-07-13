@@ -1,59 +1,67 @@
 # 🎮 Radio Mirchi
 
-A narrative-driven, pixel-styled browser game where players act as underground agents infiltrating retro-style radio broadcasts filled with AI-generated propaganda. Using a vintage terminal interface, players must strategically persuade listeners to question the narrative before being discovered.
+Ever wanted to be a secret agent battling propaganda on retro radio? That's exactly what Radio Mirchi is all about! Jump into this pixel-styled browser game where you're an underground agent trying to wake people up by infiltrating AI-generated radio broadcasts. It's like being a digital resistance fighter with a vintage terminal as your weapon.
 
-## 🎯 Game Objective
+## 🎯 The Mission
 
-**Win Condition**: Convince 80% of radio listeners to start questioning the propaganda
+**Your Goal**: Get 80% of the radio listeners to start questioning what they're hearing
 
-**Lose Conditions**:
-- Get muted by the host
-- Disconnected by AI security system
-- Time runs out
+**Game Over If**:
+- The host catches on and mutes you
+- The AI security system kicks you out
+- 
+## 🛠️ What's Under the Hood
 
-## 🛠️ Technical Architecture
+### Frontend (The Pretty Stuff)
+- **React 18+** - Because we like our components fresh
+- **TailwindCSS** - Making things look good without the headache
+- **react-rnd** - For those draggable windows that feel so satisfying
+- **[RetroUI](https://retroui.io/)** - Pre-made retro components (because why reinvent the wheel?)
+- **[react-sound-visualizer](https://www.npmjs.com/package/react-sound-visualizer)** - Those cool waveforms you see
+- **[Pixabay retro sounds](https://pixabay.com/sound-effects/search/retro/)** - All the bleeps and bloops
 
-### Frontend Stack
-- **Framework**: React 18+
-- **Styling**: TailwindCSS
-- **Window Management**: react-rnd 
-- **State Management**: zustand (lightweight) or Redux Toolkit
-- **Audio**: Web Audio API + Web Speech API
-- **Fonts**: Press Start 2P, VT323
+### Backend (The Brain)
+- **[Backend lives here](https://github.com/akshit2434/radio_mirchi_backend)** - Check it out!
 
-### Backend Stack
-- **API**: FastAPI (Python) or Express.js (Node.js)
-- **LLM**: OpenAI GPT-4 or Anthropic Claude
-- **TTS**: ElevenLabs API or Azure Speech Services
-- **STT**: OpenAI Whisper API
-- **Database**: PostgreSQL (via Supabase) or MongoDB
+## 🚀 Want to Try It?
 
-### Deployment
-- **Frontend**: Vercel or Netlify
-- **Backend**: Railway, Render, or Google Cloud Run
-- **Database**: Supabase or PlanetScale
+### You'll Need
+- Node.js 18+ (the newer the better)
+- npm or yarn (whatever floats your boat)
+- The backend running (check the [backend repo](https://github.com/akshit2434/radio_mirchi_backend))
 
-## 🎯 Success Metrics
+### Getting Started
+```bash
+# Grab the code
+git clone https://github.com/akshit2434/radio_mirchi
+cd radio_mirchi
 
-### MVP 1
-- [x] Terminal opens and accepts commands
-- [x] Basic frequency scanning works
-- [x] Retro UI aesthetic achieved
-- [x] Basic Authentication works
+# Install all the dependencies
+npm install
 
-### MVP 2
-- [ ] AI host responds coherently
-- [ ] Persuasion meter changes based on input
-- [ ] Win/lose conditions trigger correctly
+# Fire it up!
+npm run dev
+```
 
-### MVP 3
-- [ ] Voice input/output works smoothly
-- [x] Multiple AI personalities feel distinct
-- [ ] Security system creates engaging tension
-- [ ] Game state persists between sessions
+## 🎮 What Makes This Fun
 
+- **Vintage Terminal Vibes**: Feels like you're hacking in the 90s
+- **Smart AI Propaganda**: The content actually makes sense and adapts
+- **Strategic Conversations**: Every word counts - choose wisely
+- **Cat and Mouse**: Stay under the radar while spreading truth
+- **Voice Integration**: Actually talk to the radio (mind = blown)
+- **Unique Personalities**: Each AI host feels like a real person
+
+## 🔧 The Technical Cool Stuff
+
+- **Real-time Audio**: Your voice goes in, AI voice comes out, seamlessly
+- **Live Waveforms**: See your audio as colorful, dancing lines
+- **Pixel-Perfect Retro**: Every detail screams vintage authenticity
 
 
-## 📄 License
+## 📝 Legal Stuff
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - basically, do what you want with it, just don't blame me if something breaks.
+
+
+*Made with lots of ☕ and a love for all things retro*
