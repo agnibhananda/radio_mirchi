@@ -9,7 +9,7 @@ Ever wanted to be a secret agent battling propaganda on retro radio? That's exac
 **Game Over If**:
 - The host catches on and mutes you
 - The AI security system kicks you out
-- 
+
 ## 🛠️ What's Under the Hood
 
 ### Frontend (The Pretty Stuff)
