@@ -2,6 +2,8 @@
 
 Ever wanted to be a secret agent battling propaganda on retro radio? That's exactly what Radio Mirchi is all about! Jump into this pixel-styled browser game where you're an underground agent trying to wake people up by infiltrating AI-generated radio broadcasts. It's like being a digital resistance fighter with a vintage terminal as your weapon.
 
+The inspiration for Radio Mirchi came from the realization that propaganda and misinformation spread through seemingly innocent channels that sound reasonable at first glance. We wanted to create an interactive experience that would help people understand how subtle manipulation works in media, while also being genuinely fun to play.
+
 ## 🎯 The Mission
 
 **Your Goal**: Get 80% of the radio listeners to start questioning what they're hearing
