@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAudio } from '../../lib/hooks/useAudio';
 
 type PixelButtonProps = {
   children: React.ReactNode;
@@ -8,10 +9,17 @@ type PixelButtonProps = {
 };
 
 export default function PixelButton({ children, onClick, className = '', type = 'button' }: PixelButtonProps) {
+  const { play: playSelect } = useAudio('/sfx/select.mp3');
+
+  const handleClick = () => {
+    playSelect(); // Play select sound
+    onClick?.();
+  };
+
   return (
     <button
       className={`pixel-btn ${className}`}
-      onClick={onClick}
+      onClick={handleClick}
       type={type}
     >
       {children}

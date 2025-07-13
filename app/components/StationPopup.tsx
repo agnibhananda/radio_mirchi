@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Rnd } from 'react-rnd';
 import { Visualizer } from 'react-sound-visualizer';
 import { Card, ProgressBar } from 'pixel-retroui';
+import { useAudio } from '../../lib/hooks/useAudio';
 
 interface Station {
   name: string;
@@ -38,6 +39,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
   const dataArrayRef = useRef<Uint8Array | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const { play: playSelect } = useAudio('/sfx/select.mp3');
 
   // Connecting effect
   useEffect(() => {
@@ -97,6 +99,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
+        playSelect(); // Play select sound
         onClose();
       }
       // Only trigger push-to-talk if not focused on input/textarea
@@ -237,7 +240,10 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
             </div>
             <div className="text-xs font-bold tracking-widest text-gray-700">RADIO WINDOW</div>
             <button
-              onClick={onClose}
+              onClick={() => {
+                playSelect(); // Play select sound
+                onClose();
+              }}
               className="text-gray-400 hover:text-gray-700 text-lg font-bold w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 transition-colors"
             >
               ✕

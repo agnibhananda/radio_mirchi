@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { Card, Input, Button } from 'pixel-retroui';
+import { useAudio } from '../../lib/hooks/useAudio';
 
 interface RegisterFormProps {
   onRegistrationSuccess: (user: any) => void;
@@ -25,6 +26,7 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  const { play: playSelect } = useAudio('/sfx/select.mp3');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,6 +38,7 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission
+    playSelect(); // Play select sound
     setIsLoading(true);
     setErrors({});
 
@@ -128,7 +131,7 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
           {/* Header */}
           <div className="text-center mb-3">
             <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 border-2 border-orange-200">
-              <span className="text-xl">👤</span>
+              <img src="/user.png" alt="Player Icon" className="w-22 h-22" />
             </div>
             <h2 className="text-xl font-bold text-gray-800 mb-1">
               {mode === 'signup' ? 'Join the Resistance' : 'Agent Login'}
@@ -248,6 +251,7 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
               color="secondary"
               className="w-full"
               onClick={() => {
+                playSelect(); // Play select sound
                 setMode(mode === 'signup' ? 'signin' : 'signup');
                 setErrors({});
                 setIsSuccess(false);

@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RegisterForm from './RegisterForm';
+import { useAudio } from '../../lib/hooks/useAudio';
+import { Button } from 'pixel-retroui';
 
 interface RegisterSectionProps {
   onComplete: () => void;
@@ -11,6 +13,7 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showSkip, setShowSkip] = useState(false);
+  const { play: playSelect } = useAudio('/sfx/select.mp3');
 
   // Show skip option after 5 seconds
   React.useEffect(() => {
@@ -20,6 +23,10 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
 
   const handleRegistrationSuccess = (user: any) => {
     setCurrentUser(user);
+    // Stop any playing music before redirecting
+    if (typeof window !== 'undefined' && (window as any).stopAllMusic) {
+      (window as any).stopAllMusic();
+    }
     // Redirect to terminal after successful registration
     setTimeout(() => {
       router.push('/terminal');
@@ -27,6 +34,11 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
   };
 
   const handleSkip = () => {
+    playSelect(); // Play select sound
+    // Stop any playing music before redirecting
+    if (typeof window !== 'undefined' && (window as any).stopAllMusic) {
+      (window as any).stopAllMusic();
+    }
     router.push('/terminal');
   };
 
@@ -51,31 +63,13 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
             >
               {/* Screen content */}
               <div className="w-full h-full bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100 relative overflow-hidden">
-                {/* Floating Particles - Same pattern as HeroSection */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  {Array.from({ length: 8 }, (_, i) => (
-                    <div
-                      key={i}
-                      className="absolute rounded-full bg-gradient-to-r from-yellow-300 to-orange-300 animate-pulse"
-                      style={{
-                        left: `${Math.random() * 100}%`,
-                        top: `${Math.random() * 100}%`,
-                        width: `${Math.random() * 3 + 1}px`,
-                        height: `${Math.random() * 3 + 1}px`,
-                        opacity: Math.random() * 0.4 + 0.2,
-                        animationDelay: `${i * 0.5}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-
                 {/* Main Content - Horizontal Flex Layout */}
                 <div className="relative z-10 min-h-full flex items-center justify-center p-4 md:p-8">
                   <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-5xl mx-auto gap-8">
                     {/* Mission Brief */}
                     <div className="md:w-1/2 w-full flex flex-col items-center md:items-start text-center md:text-left mb-8 md:mb-0">
                       <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-full flex items-center justify-center mb-4">
-                        <span className="text-3xl">🎯</span>
+                        <img src="/mission.png" alt="Mission Icon" className="w-20 h-20" />
                       </div>
                       <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mission Registration</h1>
                       <p className="text-base md:text-lg text-gray-600 max-w-md">
@@ -86,16 +80,17 @@ export default function RegisterSection({ onComplete }: RegisterSectionProps) {
                     <div className="md:w-1/2 w-full flex flex-col items-center">
                       <RegisterForm onRegistrationSuccess={handleRegistrationSuccess} />
                     {showSkip && !currentUser && (
-                        <div className="inline-block p-3 bg-white bg-opacity-50 rounded-lg border border-orange-200 mt-4 w-full max-w-xs">
+                        <div className="inline-block p-3 pr-6  bg-white bg-opacity-50 rounded-lg border border-orange-200 mt-4 w-full max-w-xs">
                           <p className="text-xs text-gray-600 mb-2">
                             Want to proceed without registration?
                           </p>
-                          <button
-                            onClick={handleSkip}
-                            className="px-4 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors border border-gray-300 w-full"
-                          >
-                            Continue as Guest
-                          </button>
+                                                <Button
+                        onClick={handleSkip}
+                        className="w-full"
+                        color="secondary"
+                      >
+                        Continue as Guest
+                      </Button>
                         </div>
                       )}
                     </div>

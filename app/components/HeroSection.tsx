@@ -5,6 +5,7 @@ import LeaderboardPopup from './LeaderboardPopup';
 import RegisterForm from './RegisterForm';
 import { Button, Popup, Card } from 'pixel-retroui';
 import RegisterSection from '../components/RegisterSection';
+import { useAudio } from '../../lib/hooks/useAudio';
 const palette = {
   bg: '#fefcf3',
   secondary: '#f5f1e8',
@@ -31,60 +32,76 @@ interface AboutModalProps {
 }
 
 function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?: React.RefObject<HTMLButtonElement> }) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [visible, setVisible] = useState(false);
   
   useEffect(() => {
-    if (open && anchorRef?.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      setPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX - 16,
-      });
+    if (open) {
       setTimeout(() => setVisible(true), 10);
     } else {
       setVisible(false);
     }
-  }, [open, anchorRef]);
+  }, [open]);
 
-  if (!open || !position) return null;
+  if (!open) return null;
+  
   return (
-    <div 
-      style={{
-        position: 'absolute',
-        top: position.top,
-        left: position.left,
-        zIndex: 100,
-        minWidth: 320,
-        maxWidth: 400,
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(-12px)',
-        transition: 'opacity 0.25s cubic-bezier(.4,0,.2,1), transform 0.25s cubic-bezier(.4,0,.2,1)',
-      }}
-      className="drop-shadow-xl"
-    >
-      <Popup
-        isOpen={open}
-        onClose={onClose}
-        bg="#fefcd0"
-        baseBg="#f5f1e8"
-        textColor="#2c1810"
-        borderColor="#e8dcc6"
-        className="w-full"
+    <>
+      {/* Backdrop */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          zIndex: 999,
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: visible ? 'auto' : 'none',
+        }}
+        onClick={onClose}
+      />
+      
+      {/* Popup */}
+      <div 
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: `translate(-50%, -50%) ${visible ? 'scale(1)' : 'scale(0.95)'}`,
+          zIndex: 1000,
+          width: '90vw',
+          maxWidth: 500,
+          opacity: visible ? 1 : 0,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          pointerEvents: visible ? 'auto' : 'none',
+        }}
+        className="drop-shadow-2xl"
       >
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xl font-bold text-orange-800">Mission Brief</span>
+          <Popup
+            isOpen={open}
+            onClose={onClose}
+            bg="#fefcd0"
+            baseBg="#f5f1e8"
+            textColor="#2c1810"
+            borderColor="#e8dcc6"
+            className="w-full"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xl font-bold text-orange-800">Mission Brief</span>
+            </div>
+            <div>
+              Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
+            </div>
+            <div className="mt-4 text-right">
+              <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
+            </div>
+          </Popup>
         </div>
-        <div>
-          Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
-        </div>
-        <div className="mt-4 text-right">
-          <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
-        </div>
-      </Popup>
-    </div>
-  );
-}
+      </>
+    );
+  }
 
 // Animated Status
 interface AnimatedStatusProps {
@@ -165,11 +182,32 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
   const [missionHover, setMissionHover] = useState(false);
   const [riskHover, setRiskHover] = useState(false);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
+  const { play: playSelect } = useAudio('/sfx/select.mp3');
+  const { toggle: toggleMusic, isPlaying: isMusicPlaying, stop: stopMusic } = useAudio('/sfx/music.mp3', { loop: true });
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Cleanup music when component unmounts
+  useEffect(() => {
+    return () => {
+      stopMusic();
+    };
+  }, [stopMusic]);
+
+  // Expose global music stop function
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).stopAllMusic = stopMusic;
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).stopAllMusic;
+      }
+    };
+  }, [stopMusic]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -184,8 +222,7 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
   }, [aboutOpen, leaderboardOpen]);
 
   const handleInitiate = () => {
-    const audio = new Audio('/sfx/select.mp3');
-    audio.play();
+    playSelect(); // Play select sound
     setTimeout(() => {
       onInitiateBreach();
     }, 120);
@@ -242,14 +279,22 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
                         <div className="p-6 md:p-8 lg:p-10 text-center">
                         {/* Radio Icon */}
                         <div 
-                            className="mb-6 flex justify-center"
-                          onClick={() => setRadioAnimate(!radioAnimate)}
+                            className="mb-6 flex justify-center relative"
+                          onClick={() => {
+                            toggleMusic(); // Toggle music play/pause
+                            setRadioAnimate(!radioAnimate);
+                          }}
                         >
                             <img 
                               src="/radio.png" 
                               alt="Radio Icon" 
-                              className="w-16 h-12 md:w-20 md:h-16 lg:w-24 lg:h-20 object-contain drop-shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200" 
+                              className={`w-16 h-12 md:w-20 md:h-16 lg:w-24 lg:h-20 object-contain drop-shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200 ${
+                                isMusicPlaying ? 'animate-pulse' : ''
+                              }`}
                             />
+                            {isMusicPlaying && (
+                              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse border-2 border-white"></div>
+                            )}
                         </div>
                         
                           {/* Title Section */}
@@ -278,7 +323,12 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
                         </div>
                             
                             {/* Main Title */}
-                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-orange-600 mb-3" style={modernRetroFont}>
+                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-orange-600 mb-3" style={{
+                              ...modernRetroFont,
+                              textShadow: '0 0 10px rgba(234, 88, 12, 0.5), 0 0 20px rgba(234, 88, 12, 0.3)',
+                              letterSpacing: '0.1em',
+                              fontWeight: '900'
+                            }}>
                               RADIO MIRCHI
                             </h1>
                         
