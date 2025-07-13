@@ -39,6 +39,7 @@ A narrative-driven, pixel-styled browser game where players act as underground a
 - [x] Terminal opens and accepts commands
 - [x] Basic frequency scanning works
 - [x] Retro UI aesthetic achieved
+- [x] Basic Authentication works
 
 ### MVP 2
 - [ ] AI host responds coherently
@@ -47,18 +48,11 @@ A narrative-driven, pixel-styled browser game where players act as underground a
 
 ### MVP 3
 - [ ] Voice input/output works smoothly
-- [ ] Multiple AI personalities feel distinct
+- [x] Multiple AI personalities feel distinct
 - [ ] Security system creates engaging tension
-
-### MVP 4
-- [ ] All windows function independently
-- [ ] Full desktop simulation experience
 - [ ] Game state persists between sessions
 
-### MVP 5
-- [ ] Game feels polished and complete
-- [ ] Tutorial successfully onboards new players
-- [ ] Achievement system encourages replay
+
 
 ## 📄 License
 
