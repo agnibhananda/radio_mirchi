@@ -51,14 +51,8 @@ npm run dev
 - **Smart AI Propaganda**: The content actually makes sense and adapts
 - **Strategic Conversations**: Every word counts - choose wisely
 - **Cat and Mouse**: Stay under the radar while spreading truth
-- **Voice Integration**: Actually talk to the radio (mind = blown)
 - **Unique Personalities**: Each AI host feels like a real person
 
-## 🔧 The Technical Cool Stuff
-
-- **Real-time Audio**: Your voice goes in, AI voice comes out, seamlessly
-- **Live Waveforms**: See your audio as colorful, dancing lines
-- **Pixel-Perfect Retro**: Every detail screams vintage authenticity
 
 
 ## 📝 Legal Stuff
