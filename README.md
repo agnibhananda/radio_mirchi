@@ -61,7 +61,7 @@ npm run dev
 
 ## 📝 Legal Stuff
 
-MIT License - basically, do what you want with it, just don't blame me if something breaks.
+MIT License - basically, do what you want with it, just don't blame us if something breaks.
 
 
 *Made with lots of ☕ and a love for all things retro*
