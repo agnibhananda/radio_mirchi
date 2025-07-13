@@ -4,6 +4,9 @@ import StationPopup from '../components/StationPopup';
 import AudioFeedback from '../components/AudioFeedback';
 import { useRouter } from 'next/navigation';
 
+// Add this import to your global CSS or _app.tsx if not already present:
+// @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 // Consistent retro color palette
 const RETRO_COLORS = {
   GREEN: '#00ff41',       // Matrix green
@@ -22,8 +25,10 @@ const RETRO_COLORS = {
 };
 
 const RETRO_FONT = {
-  fontFamily: '"Courier New", "Monaco", "Menlo", monospace',
-  fontWeight: 'bold',
+  fontFamily: "'VT323', 'Fira Mono', 'Menlo', monospace",
+  fontWeight: 'normal',
+  fontSize: '22px',
+  letterSpacing: '1px',
 };
 
 interface Station {
@@ -132,6 +137,20 @@ interface RetroInputProps {
   promptText: string;
 }
 
+const RETRO_INPUT_STYLE = {
+  fontFamily: "'VT323', 'Fira Mono', 'Menlo', monospace",
+  fontSize: '26px',
+  color: '#fff',
+  background: '#23232b',
+  border: '2px solid #fff',
+  borderRadius: '6px',
+  padding: '10px 16px',
+  outline: 'none',
+  boxShadow: '0 0 0 2px #23232b',
+  letterSpacing: '1px',
+  caretColor: '#fff',
+};
+
 const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -146,16 +165,18 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
     <div style={{ 
       display: 'flex', 
       alignItems: 'center',
-      background: RETRO_COLORS.BG_TERMINAL,
+      background: '#23232b',
       padding: '8px 12px',
-      border: `1px solid ${RETRO_COLORS.GREEN}`,
-      borderRadius: '4px',
-      boxShadow: `inset 0 0 10px ${RETRO_COLORS.GREEN}20`,
+      border: '2px solid #fff',
+      borderRadius: '6px',
+      boxShadow: '0 0 0 2px #18181b',
+      ...RETRO_FONT,
     }}>
       <span style={{ 
         color: RETRO_COLORS.PROMPT, 
-        marginRight: 8,
+        marginRight: 12,
         ...RETRO_FONT,
+        fontSize: '22px',
         textShadow: `0 0 5px ${RETRO_COLORS.PROMPT}`,
       }}>
         {promptText}
@@ -170,14 +191,12 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
           onBlur={() => setIsFocused(false)}
           disabled={disabled}
           style={{
+            ...RETRO_INPUT_STYLE,
+            width: '100%',
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            color: RETRO_COLORS.GREEN,
-            ...RETRO_FONT,
-            fontSize: 14,
-            width: '100%',
-            caretColor: 'transparent', // Hide default cursor
+            boxShadow: 'none',
           }}
           autoFocus
           spellCheck={false}
@@ -188,14 +207,16 @@ const RetroInput = ({ value, onChange, onKeyDown, disabled, promptText }: RetroI
         <span
           style={{
             position: 'absolute',
-            left: `${value.length * 8.4}px`, // Approximate character width
+            left: `${value.length * 15}px`, // Approximate character width
             top: '50%',
             transform: 'translateY(-50%)',
-            color: RETRO_COLORS.GREEN,
+            color: '#fff',
             animation: 'blink 1s infinite',
-            textShadow: `0 0 5px ${RETRO_COLORS.GREEN}`,
-            fontSize: 14,
+            textShadow: `0 0 5px #fff` ,
+            fontSize: '26px',
             lineHeight: 1,
+            pointerEvents: 'none',
+            fontFamily: "'VT323', 'Fira Mono', 'Menlo', monospace",
           }}
         >
           █
@@ -218,17 +239,17 @@ interface TerminalLine {
 export default function TerminalPage() {
   const router = useRouter();
   const [lines, setLines] = useState<TerminalLine[]>([
-    { id: getNextTerminalLineId(), text: '╔══════════════════════════════════════════════════════════╗', color: RETRO_COLORS.CYAN, delay: 0 },
-    { id: getNextTerminalLineId(), text: '║            RADIO MIRCHI TERMINAL v3.0                   ║', color: RETRO_COLORS.MAGENTA, delay: 300 },
-    { id: getNextTerminalLineId(), text: '║               [UNDERGROUND AGENT MODE]                   ║', color: RETRO_COLORS.YELLOW, delay: 600 },
-    { id: getNextTerminalLineId(), text: '╚══════════════════════════════════════════════════════════╝', color: RETRO_COLORS.CYAN, delay: 900 },
-    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.GREEN, delay: 1200 },
-    { id: getNextTerminalLineId(), text: '>>> MISSION BRIEF: INFILTRATE RADIO BROADCASTS <<<', color: RETRO_COLORS.GREEN, delay: 1500 },
-    { id: getNextTerminalLineId(), text: '>>> OBJECTIVE: DISRUPT AI PROPAGANDA <<<', color: RETRO_COLORS.RED, delay: 1800 },
-    { id: getNextTerminalLineId(), text: '>>> WARNING: AVOID DETECTION SYSTEMS <<<', color: RETRO_COLORS.ORANGE, delay: 2100 },
-    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.GREEN, delay: 2400 },
-    { id: getNextTerminalLineId(), text: 'Type "help" for available commands.', color: RETRO_COLORS.AMBER, delay: 2700 },
-    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.GREEN, delay: 3000 },
+    { id: getNextTerminalLineId(), text: '╔══════════════════════════════════════════════════════════╗', color: RETRO_COLORS.WHITE, delay: 0 },
+    { id: getNextTerminalLineId(), text: '║            RADIO MIRCHI TERMINAL v3.0                    ║', color: RETRO_COLORS.WHITE, delay: 300 },
+    { id: getNextTerminalLineId(), text: '║               [UNDERGROUND AGENT MODE]                   ║', color: RETRO_COLORS.WHITE, delay: 600 },
+    { id: getNextTerminalLineId(), text: '╚══════════════════════════════════════════════════════════╝', color: RETRO_COLORS.WHITE, delay: 900 },
+    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.WHITE, delay: 1200 },
+    { id: getNextTerminalLineId(), text: '>>> MISSION BRIEF: INFILTRATE RADIO BROADCASTS <<<', color: RETRO_COLORS.WHITE, delay: 1500 },
+    { id: getNextTerminalLineId(), text: '>>> OBJECTIVE: DISRUPT AI PROPAGANDA <<<', color: RETRO_COLORS.YELLOW, delay: 1800 },
+    { id: getNextTerminalLineId(), text: '>>> WARNING: AVOID DETECTION SYSTEMS <<<', color: RETRO_COLORS.RED, delay: 2100 },
+    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.WHITE, delay: 2400 },
+    { id: getNextTerminalLineId(), text: 'Type "help" for available commands.', color: RETRO_COLORS.YELLOW, delay: 2700 },
+    { id: getNextTerminalLineId(), text: '', color: RETRO_COLORS.WHITE, delay: 3000 },
   ]);
   
   const [input, setInput] = useState('');
@@ -262,33 +283,35 @@ export default function TerminalPage() {
     
     if (cmd === 'help') {
       addLines([
-        { text: '╭─ AVAILABLE COMMANDS ─────────────────────────────╮', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '│  help           - Show this help screen         │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  stations       - List all radio stations       │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  connect <n>    - Connect to station            │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  disconnect     - Disconnect from station       │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  status         - Show connection status        │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  clear          - Clear terminal screen         │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│  exit           - Exit terminal                  │', color: RETRO_COLORS.WHITE, delay: 0 },
-        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '╭──────────────────────────────────────────────────────────────╮', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│                  AVAILABLE COMMANDS                         │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│                                                            │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  help         - Show this help screen                      │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  stations     - List all radio stations                    │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  connect <n>  - Connect to station                         │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  disconnect   - Disconnect from station                    │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  status       - Show connection status                     │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  clear        - Clear terminal screen                      │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│  exit         - Exit terminal                              │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│                                                            │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '╰──────────────────────────────────────────────────────────────╯', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
       ]);
     } else if (cmd === 'stations') {
       addLines([
-        { text: '╭─ RADIO STATIONS ─────────────────────────────────╮', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
+        { text: '╭──────────────────────────────────────────────────────────────╮', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│                        RADIO STATIONS                       │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '│                                                            │', color: RETRO_COLORS.WHITE, delay: 0 },
         ...STATIONS.map(station => ({
-          text: `│  📻 ${station.name.padEnd(12)} - ${station.desc.padEnd(20)} │`,
-          color: RETRO_COLORS.WHITE,
+          text: `│  📻 ${station.name.padEnd(12)} - ${station.desc.padEnd(38)}│`,
+          color: station.name === '101.2 FM' ? RETRO_COLORS.YELLOW : RETRO_COLORS.WHITE,
           delay: 0
         })),
-        { text: '│                                                  │', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.CYAN, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '│                                                            │', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '╰──────────────────────────────────────────────────────────────╯', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         { text: 'Use "connect <station>" to infiltrate broadcasts!', color: RETRO_COLORS.YELLOW, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
       ]);
     } else if (cmd.startsWith('connect ')) {
       const query = command.slice(8).trim().toLowerCase();
@@ -302,55 +325,55 @@ export default function TerminalPage() {
         setConnectedStation(station);
         setTimeout(() => setStationPopup(station), 500);
         addLines([
-          { text: `>>> INFILTRATING ${station.name} <<<`, color: station.color, delay: 0 },
-          { text: `>>> FREQUENCY LOCKED <<<`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: `>>> TARGET: ${station.desc} <<<`, color: station.color, delay: 0 },
+          { text: `>>> INFILTRATING ${station.name} <<<`, color: RETRO_COLORS.YELLOW, delay: 0 },
+          { text: `>>> FREQUENCY LOCKED <<<`, color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: `>>> TARGET: ${station.desc} <<<`, color: RETRO_COLORS.YELLOW, delay: 0 },
           { text: `>>> WARNING: AI SECURITY ACTIVE <<<`, color: RETRO_COLORS.RED, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
       } else {
         addLines([
           { text: `>>> ERROR: STATION NOT FOUND <<<`, color: RETRO_COLORS.RED, delay: 0 },
           { text: `>>> SEARCH QUERY: ${query.toUpperCase()} <<<`, color: RETRO_COLORS.RED, delay: 0 },
-          { text: 'Type "stations" to see available frequencies.', color: RETRO_COLORS.AMBER, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: 'Type "stations" to see available frequencies.', color: RETRO_COLORS.YELLOW, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
       }
     } else if (cmd === 'disconnect') {
       if (connectedStation) {
         addLines([
-          { text: `>>> DISCONNECTING FROM ${connectedStation.name} <<<`, color: RETRO_COLORS.ORANGE, delay: 0 },
-          { text: `>>> FREQUENCY RELEASED <<<`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: `>>> MISSION STATUS: STEALTH MODE <<<`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: `>>> DISCONNECTING FROM ${connectedStation.name} <<<`, color: RETRO_COLORS.YELLOW, delay: 0 },
+          { text: `>>> FREQUENCY RELEASED <<<`, color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: `>>> MISSION STATUS: STEALTH MODE <<<`, color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
         setConnectedStation(null);
       } else {
         addLines([
           { text: `>>> ERROR: NO ACTIVE CONNECTION <<<`, color: RETRO_COLORS.RED, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
       }
     } else if (cmd === 'status') {
       if (connectedStation) {
         addLines([
-          { text: '╭─ INFILTRATION STATUS ──────────────────────────────╮', color: RETRO_COLORS.BLUE, delay: 0 },
-          { text: `│  STATUS: CONNECTED                               │`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: `│  TARGET: ${connectedStation.name.padEnd(36)} │`, color: connectedStation.color, delay: 0 },
-          { text: `│  BROADCAST: ${connectedStation.desc.padEnd(36)} │`, color: connectedStation.color, delay: 0 },
-          { text: `│  SIGNAL: STRONG                                  │`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: `│  STEALTH: ACTIVE                                 │`, color: RETRO_COLORS.GREEN, delay: 0 },
-          { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.BLUE, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: '╭─ INFILTRATION STATUS ───────────────────────────────────────╮', color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: `│  STATUS: CONNECTED                                         │`, color: RETRO_COLORS.YELLOW, delay: 0 },
+          { text: `│  TARGET: ${connectedStation.name.padEnd(36)} │`, color: connectedStation.name === '101.2 FM' ? RETRO_COLORS.YELLOW : RETRO_COLORS.WHITE, delay: 0 },
+          { text: `│  BROADCAST: ${connectedStation.desc.padEnd(36)} │`, color: connectedStation.name === '101.2 FM' ? RETRO_COLORS.YELLOW : RETRO_COLORS.WHITE, delay: 0 },
+          { text: `│  SIGNAL: STRONG                                            │`, color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: `│  STEALTH: ACTIVE                                           │`, color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: '╰──────────────────────────────────────────────────────────────╯', color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
       } else {
         addLines([
-          { text: '╭─ INFILTRATION STATUS ──────────────────────────────╮', color: RETRO_COLORS.BLUE, delay: 0 },
-          { text: `│  STATUS: DISCONNECTED                            │`, color: RETRO_COLORS.RED, delay: 0 },
-          { text: `│  TARGET: NONE                                    │`, color: RETRO_COLORS.RED, delay: 0 },
-          { text: `│  STEALTH: STANDBY                               │`, color: RETRO_COLORS.AMBER, delay: 0 },
-          { text: '╰──────────────────────────────────────────────────╯', color: RETRO_COLORS.BLUE, delay: 0 },
-          { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+          { text: '╭─ INFILTRATION STATUS ───────────────────────────────────────╮', color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: `│  STATUS: DISCONNECTED                                      │`, color: RETRO_COLORS.RED, delay: 0 },
+          { text: `│  TARGET: NONE                                              │`, color: RETRO_COLORS.RED, delay: 0 },
+          { text: `│  STEALTH: STANDBY                                          │`, color: RETRO_COLORS.YELLOW, delay: 0 },
+          { text: '╰──────────────────────────────────────────────────────────────╯', color: RETRO_COLORS.WHITE, delay: 0 },
+          { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
         ]);
       }
     } else if (cmd === 'clear') {
@@ -358,11 +381,11 @@ export default function TerminalPage() {
     } else if (cmd === 'exit') {
       addLines([
         { text: '>>> TERMINATING INFILTRATION <<<', color: RETRO_COLORS.RED, delay: 0 },
-        { text: '>>> MISSION LOG SAVED <<<', color: RETRO_COLORS.MAGENTA, delay: 0 },
-        { text: '>>> KEEP THE RESISTANCE ALIVE! <<<', color: RETRO_COLORS.PURPLE, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
-        { text: 'Session terminated. Redirecting to home...', color: RETRO_COLORS.AMBER, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: '>>> MISSION LOG SAVED <<<', color: RETRO_COLORS.YELLOW, delay: 0 },
+        { text: '>>> KEEP THE RESISTANCE ALIVE! <<<', color: RETRO_COLORS.YELLOW, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
+        { text: 'Session terminated. Redirecting to home...', color: RETRO_COLORS.YELLOW, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
       ]);
       setTimeout(() => {
         router.push('/');
@@ -370,8 +393,8 @@ export default function TerminalPage() {
     } else {
       addLines([
         { text: `>>> UNKNOWN COMMAND: ${command.toUpperCase()} <<<`, color: RETRO_COLORS.RED, delay: 0 },
-        { text: 'Type "help" for available commands.', color: RETRO_COLORS.AMBER, delay: 0 },
-        { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
+        { text: 'Type "help" for available commands.', color: RETRO_COLORS.YELLOW, delay: 0 },
+        { text: '', color: RETRO_COLORS.WHITE, delay: 0 },
       ]);
     }
   };
@@ -426,58 +449,37 @@ export default function TerminalPage() {
   return (
     <>
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        
         @keyframes slideIn {
           from { transform: translateY(-20px); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
         }
-        
         @keyframes blink {
           0%, 50% { opacity: 1; }
           51%, 100% { opacity: 0; }
         }
-        
         * {
           scrollbar-width: thin;
-          scrollbar-color: ${RETRO_COLORS.GREEN} ${RETRO_COLORS.BG_TERMINAL};
+          scrollbar-color: #fff #18181b;
         }
-        
         *::-webkit-scrollbar {
           width: 8px;
         }
-        
         *::-webkit-scrollbar-track {
-          background: ${RETRO_COLORS.BG_TERMINAL};
+          background: #18181b;
         }
-        
         *::-webkit-scrollbar-thumb {
-          background: ${RETRO_COLORS.GREEN};
+          background: #fff;
           border-radius: 4px;
         }
-        
-        /* CRT Phosphor Effect */
-        .crt-text {
-          text-shadow: 0 0 5px rgba(0, 255, 65, 0.4), 0 0 10px rgba(0, 255, 65, 0.2);
-        }
-        
-        .crt-text-strong {
-          text-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 15px rgba(0, 255, 65, 0.3);
-        }
-        
-        .crt-text-cyan {
-          text-shadow: 0 0 5px rgba(0, 255, 255, 0.4), 0 0 10px rgba(0, 255, 255, 0.2);
-        }
-        
-        .crt-text-yellow {
-          text-shadow: 0 0 5px rgba(255, 255, 0, 0.4), 0 0 10px rgba(255, 255, 0, 0.2);
-        }
-        
-        .crt-text-magenta {
-          text-shadow: 0 0 5px rgba(255, 0, 255, 0.4), 0 0 10px rgba(255, 0, 255, 0.2);
+        .crt-text, .crt-text-strong, .crt-text-cyan, .crt-text-yellow, .crt-text-magenta {
+          font-family: 'VT323', 'Fira Mono', 'Menlo', monospace !important;
+          font-size: 22px !important;
+          letter-spacing: 1px;
         }
       `}</style>
       
@@ -487,7 +489,7 @@ export default function TerminalPage() {
           inset: 0,
           width: '100vw',
           height: '100vh',
-          background: `linear-gradient(135deg, ${RETRO_COLORS.BG_DARK} 0%, ${RETRO_COLORS.BG_TERMINAL} 100%)`,
+          background: '#18181b',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
@@ -503,7 +505,8 @@ export default function TerminalPage() {
             overflowY: 'auto',
             padding: '20px',
             ...RETRO_FONT,
-            fontSize: 14,
+            background: 'transparent',
+            color: '#fff',
             lineHeight: 1.6,
             position: 'relative',
             zIndex: 2,
@@ -534,6 +537,7 @@ export default function TerminalPage() {
               borderRadius: '6px',
               background: `${connectedStation.color}20`,
               position: 'relative',
+              ...RETRO_FONT,
             }}>
               <TypewriterText
                 id={`connected-${connectedStation.name}`}
@@ -550,8 +554,8 @@ export default function TerminalPage() {
         {/* Input area */}
         <div style={{ 
           padding: '16px 20px', 
-          background: `${RETRO_COLORS.BG_TERMINAL}dd`,
-          borderTop: `2px solid ${RETRO_COLORS.GREEN}`,
+          background: '#23232b',
+          borderTop: `2px solid #fff`,
           position: 'relative',
           zIndex: 2,
         }}>

@@ -43,7 +43,7 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
   }, [open]);
 
   if (!open) return null;
-  
+
   return (
     <>
       {/* Backdrop */}
@@ -64,8 +64,8 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
       />
       
       {/* Popup */}
-      <div 
-        style={{
+    <div 
+      style={{
           position: 'fixed',
           top: '50%',
           left: '50%',
@@ -73,35 +73,47 @@ function AboutModal({ open, onClose, anchorRef }: AboutModalProps & { anchorRef?
           zIndex: 1000,
           width: '90vw',
           maxWidth: 500,
-          opacity: visible ? 1 : 0,
+        opacity: visible ? 1 : 0,
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           pointerEvents: visible ? 'auto' : 'none',
-        }}
+      }}
         className="drop-shadow-2xl"
+    >
+      <Popup
+        isOpen={open}
+        onClose={onClose}
+        bg="#fefcd0"
+        baseBg="#f5f1e8"
+        textColor="#2c1810"
+        borderColor="#e8dcc6"
+        className="w-full"
       >
-          <Popup
-            isOpen={open}
-            onClose={onClose}
-            bg="#fefcd0"
-            baseBg="#f5f1e8"
-            textColor="#2c1810"
-            borderColor="#e8dcc6"
-            className="w-full"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xl font-bold text-orange-800">Mission Brief</span>
-            </div>
-            <div>
-              Play as underground agents infiltrating retro radio broadcasts filled with AI-generated propaganda. Disrupt the signal before being discovered and kicked out. Use stealth, timing, and clever tactics to overcome the system's defenses.
-            </div>
-            <div className="mt-4 text-right">
-              <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
-            </div>
-          </Popup>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xl font-bold text-orange-800">Info</span>
         </div>
+        <div>
+          <div style={{ marginBottom: 16, fontStyle: 'italic', color: '#b45309', background: '#fff8e1', borderLeft: '4px solid #fbbf24', padding: '10px 16px', borderRadius: 6 }}>
+            <span style={{ fontWeight: 700, color: '#ea580c' }}>Inspiration:</span> The inspiration for <span style={{ fontWeight: 700 }}>Radio Mirchi</span> came from the realization that propaganda and misinformation spread through seemingly innocent channels that sound reasonable at first glance. We wanted to create an interactive experience that would help people understand how subtle manipulation works in media, while also being genuinely fun to play.
+          </div>
+          <div style={{ textAlign: 'center', margin: '12px 0' }}>
+            <span style={{ display: 'inline-block', width: 32, height: 2, background: '#fbbf24', borderRadius: 2, opacity: 0.7 }}></span>
+          </div>
+          <div style={{ marginBottom: 8, color: '#2c1810' }}>
+            <span style={{ fontWeight: 700, color: '#ea580c' }}>Your Mission:</span> You are an undercover agent tasked with infiltrating <b>AI-controlled radio broadcasts</b>.<br/>
+            <span style={{ color: '#14532d', fontWeight: 600 }}>Persuade as many listeners as possible</span> to question the propaganda being spread on air. Use your wit, logic, and timing to disrupt the narrative.
+          </div>
+          <div style={{ color: '#991b1b', fontWeight: 600, marginTop: 8 }}>
+            <span style={{ color: '#b91c1c', fontWeight: 700 }}>Beware:</span> The system is always watching for suspicious activity. If you draw too much attention, you risk being detected and forcibly disconnected. <span style={{ color: '#ea580c' }}>Stay sharp, stay stealthy, and turn the tide of the airwaves!</span>
+          </div>
+        </div>
+        <div className="mt-4 text-right">
+          <span className="text-sm text-orange-600 opacity-70">Press ESC to close</span>
+        </div>
+      </Popup>
+    </div>
       </>
-    );
-  }
+  );
+}
 
 // Animated Status
 interface AnimatedStatusProps {
@@ -352,10 +364,12 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
                                 className="p-4 md:p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer h-full"
                           >
                             <div className="flex items-center justify-center mb-3">
-                                  <img src="/flag.png" alt="Mission" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
-                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#15803d' }}>MISSION</h3>
+                                  <img src="/flag.png" alt="Mission" className="w-10 h-10 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
+                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#15803d', fontWeight: 900, fontSize: '1.15em', letterSpacing: '0.04em' }}><strong>MISSION</strong></h3>
                                 </div>
-                                <p className="text-green-700 text-sm md:text-base">Counter propaganda broadcasts</p>
+                                <p className="text-green-700 text-sm md:text-base">
+                                  Persuade radio listeners to question and resist the AI-driven propaganda. Use clever arguments and strategic timing to sway the crowd without drawing suspicion.
+                                </p>
                               </Card>
                             </div>
                           <div
@@ -371,9 +385,11 @@ export default function UpdatedHeroSection({ onInitiateBreach }: { onInitiateBre
                           >
                             <div className="flex items-center justify-center mb-3">
                                   <img src="/danger.png" alt="Risk" className="w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-3 object-contain" />
-                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#b91c1c' }}>RISK</h3>
+                                  <h3 className="text-base md:text-lg font-bold" style={{ color: '#b91c1c', fontWeight: 900, fontSize: '1.15em', letterSpacing: '0.04em' }}><strong>RISK</strong></h3>
                             </div>
-                                <p className="text-red-700 text-sm md:text-base">Avoid detection systems</p>
+                                <p className="text-red-700 text-sm md:text-base">
+                                  If you act too suspiciously or disruptively, the AI security system will detect your presence and disconnect you from the broadcast. Balance your actions to avoid detection!
+                                </p>
                               </Card>
                           </div>
                         </div>
