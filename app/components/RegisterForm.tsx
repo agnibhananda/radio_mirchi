@@ -106,11 +106,51 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
         email: data.user.email,
         score: data.user.score
       };
-      onRegistrationSuccess(user);
+
+      // Store userId in localStorage
+      localStorage.setItem('userId', user.id);
+      console.log('Stored userId in localStorage:', user.id); // Debug log
+
       setFormData({ name: '', email: '', password: '' });
+
+      // Make POST request to create_mission endpoint in the background
+      (async () => {
+        try {
+          const createMissionResponse = await fetch('http://localhost:8000/api/v1/create_mission', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              topic: "any", // topic is "any" to allow backend to assign a random topic
+              user_id: user.id // Use the userId from the successful registration/signin
+            }),
+          });
+
+          const missionData = await createMissionResponse.json();
+          console.log('create_mission API response:', missionData); // Debug log
+
+          if (!createMissionResponse.ok) {
+            console.error('Failed to create mission in background:', missionData.message || 'Unknown error');
+            // Optionally, you could set a non-blocking error state here if needed
+          } else {
+            console.log('Mission created successfully. Mission ID from backend:', missionData.id); // Debug log
+            localStorage.setItem('missionId', missionData.id);
+            console.log('Stored missionId in localStorage:', missionData.id); // Debug log
+            // Allow user to proceed only after mission is created and ID is stored
+            onRegistrationSuccess(user);
+          }
+        } catch (error) {
+          console.error('Network error during mission creation in background:', error);
+          // If mission creation fails, still allow user to proceed but without a missionId
+          onRegistrationSuccess(user);
+        }
+      })();
       
     } catch (error) {
       setErrors({ general: 'Network error. Please try again.' });
+      // If initial registration/signin fails, ensure loading state is reset
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }

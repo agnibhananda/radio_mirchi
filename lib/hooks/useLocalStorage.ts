@@ -26,7 +26,18 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       if (typeof window !== 'undefined') {
         const item = window.localStorage.getItem(key);
         if (item) {
-          setStoredValue(JSON.parse(item));
+          try {
+            // Attempt to parse if it looks like a JSON object or array
+            if (item.startsWith('{') || item.startsWith('[')) {
+              setStoredValue(JSON.parse(item));
+            } else {
+              // Otherwise, treat as a plain string
+              setStoredValue(item as T);
+            }
+          } catch (parseError) {
+            console.warn(`Could not parse localStorage item for key "${key}" as JSON. Treating as plain string.`, parseError);
+            setStoredValue(item as T);
+          }
         }
       }
     } catch (error) {
