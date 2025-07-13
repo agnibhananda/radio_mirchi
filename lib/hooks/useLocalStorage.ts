@@ -28,7 +28,9 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         if (item) {
           try {
             // Attempt to parse if it looks like a JSON object or array
-            if (item.startsWith('{') || item.startsWith('[')) {
+            if (item === 'null' || item === 'undefined') { // Handle the string "null" or "undefined" specifically
+              setStoredValue(null as T);
+            } else if (item.startsWith('{') || item.startsWith('[')) {
               setStoredValue(JSON.parse(item));
             } else {
               // Otherwise, treat as a plain string

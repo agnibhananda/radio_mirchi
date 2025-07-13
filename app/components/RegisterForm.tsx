@@ -134,9 +134,10 @@ export default function RegisterForm({ onRegistrationSuccess }: RegisterFormProp
             console.error('Failed to create mission in background:', missionData.message || 'Unknown error');
             // Optionally, you could set a non-blocking error state here if needed
           } else {
-            console.log('Mission created successfully. Mission ID from backend:', missionData.id); // Debug log
-            localStorage.setItem('missionId', missionData.id);
-            console.log('Stored missionId in localStorage:', missionData.id); // Debug log
+            console.log('Mission created successfully. Mission ID from backend:', missionData._id);
+            console.log('Type of missionData._id:', typeof missionData._id); // New debug log
+            localStorage.setItem('missionId', missionData._id);
+            console.log('Stored missionId in localStorage:', missionData._id);
             // Allow user to proceed only after mission is created and ID is stored
             onRegistrationSuccess(user);
           }

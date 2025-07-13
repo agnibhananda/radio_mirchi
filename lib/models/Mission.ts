@@ -6,7 +6,7 @@ interface ISpeaker {
 }
 
 export interface IMission extends Document {
-  _id: string; // MongoDB's default _id, storing the missionId from the backend as a UUID string
+  _id: mongoose.Types.ObjectId; // MongoDB's default _id
   user_id: string;
   topic: string;
   status: string;
@@ -22,16 +22,6 @@ const SpeakerSchema: Schema = new Schema({
 }, { _id: false }); // Do not create default _id for subdocuments
 
 const MissionSchema: Schema = new Schema({
-  _id: { // Explicitly define _id as String to match backend's UUID storage
-    type: String,
-    required: true,
-    unique: true,
-  },
-  id: { // Add id field to schema
-    type: String,
-    required: true,
-    unique: true,
-  },
   user_id: {
     type: String,
     required: true,

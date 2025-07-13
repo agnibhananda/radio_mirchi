@@ -48,6 +48,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
   const [connectionError, setConnectionError] = useState(false); // New state for connection errors
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const webSocketRef = useRef<WebSocket | null>(null); // Ref for WebSocket instance
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioPlayerRef = useRef<AudioPlayer | null>(null);
 
   const { play: playSelect } = useAudio('/sfx/select.mp3');
@@ -142,7 +143,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
     const pollMissionStatus = async () => {
       try {
         console.log('Polling mission status for missionId:', missionId); // Debug log
-        const response = await fetch(`http://localhost:8000/api/v1/mission_status/${missionId}`);
+        const response = await fetch(`http://localhost:8000/api/v1/mission_status/${missionId.toString()}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -317,22 +318,62 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
 
   // Audio input logic
   const startRecording = async () => {
-    if (recording) return;
+    if (recording || !webSocketRef.current || webSocketRef.current.readyState !== WebSocket.OPEN) {
+      if (!webSocketRef.current || webSocketRef.current.readyState !== WebSocket.OPEN) {
+        console.warn('[Mic] WebSocket not connected. Cannot start recording.');
+      }
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('[Mic] Starting recording...');
+      webSocketRef.current.send(JSON.stringify({ action: 'start_speech' }));
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+        },
+      });
       setAudioStream(stream);
       setRecording(true);
+
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && webSocketRef.current?.readyState === WebSocket.OPEN) {
+          webSocketRef.current.send(event.data);
+        }
+      };
+
+      recorder.start(100); // Collect 100ms of audio at a time
     } catch (err) {
-      alert('Microphone access denied.');
+      console.error('[Mic] Error starting recording:', err);
+      alert('Microphone access denied or an error occurred.');
     }
   };
 
   const stopRecording = () => {
+    if (!recording) return;
+
+    console.log('[Mic] Stopping recording...');
     setRecording(false);
+
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+
+    if (webSocketRef.current && webSocketRef.current.readyState === WebSocket.OPEN) {
+      webSocketRef.current.send(JSON.stringify({ action: 'stop_speech' }));
+    }
+
     if (audioStream) {
       audioStream.getTracks().forEach(track => track.stop());
       setAudioStream(null);
     }
+    mediaRecorderRef.current = null;
   };
 
   useEffect(() => {
