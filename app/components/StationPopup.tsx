@@ -32,9 +32,9 @@ interface StationPopupProps {
 }
 
 const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, users }) => {
-  const [initialListeners, setInitialListeners] = useState(0);
+  const [initialListeners, setInitialListeners] = useState(15000);
   const [awakenedListeners, setAwakenedListeners] = useState(1236);
-  const [questioningMeter, setQuestioningMeter] = useState(148);
+  const [questioningMeter, setQuestioningMeter] = useState(14);
   const [message, setMessage] = useState('');
   const [timeLeft, setTimeLeft] = useState(180);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -93,6 +93,10 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
       const data = await response.json();
       if (data.speakers && Array.isArray(data.speakers)) {
         setSpeakers(data.speakers);
+      }
+      console.log('Speaker data fetched:', data); // Debug log
+      if (data.generation_result.initial_listeners) {
+        setInitialListeners(data.generation_result.initial_listeners);
       }
       setIsLoadingMission(false); // Mission data loaded
     } catch (error) {
@@ -206,6 +210,9 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
         if (typeof event.data === 'string') {
           try {
             const message = JSON.parse(event.data);
+            if (message.awakened_listeners !== undefined) {
+              setAwakenedListeners(message.awakened_listeners);
+            }
             if (message.status === 'dialogue_end') {
               console.log('[WebSocket] Received dialogue_end signal.');
               audioPlayerRef.current?.handleDialogueEnd();
