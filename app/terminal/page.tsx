@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import StationPopup from '../components/StationPopup';
 import AudioFeedback from '../components/AudioFeedback';
+import { useRouter } from 'next/navigation';
 
 // Consistent retro color palette
 const RETRO_COLORS = {
@@ -215,6 +216,7 @@ interface TerminalLine {
 }
 
 export default function TerminalPage() {
+  const router = useRouter();
   const [lines, setLines] = useState<TerminalLine[]>([
     { id: getNextTerminalLineId(), text: '╔══════════════════════════════════════════════════════════╗', color: RETRO_COLORS.CYAN, delay: 0 },
     { id: getNextTerminalLineId(), text: '║            RADIO MIRCHI TERMINAL v3.0                   ║', color: RETRO_COLORS.MAGENTA, delay: 300 },
@@ -359,9 +361,12 @@ export default function TerminalPage() {
         { text: '>>> MISSION LOG SAVED <<<', color: RETRO_COLORS.MAGENTA, delay: 0 },
         { text: '>>> KEEP THE RESISTANCE ALIVE! <<<', color: RETRO_COLORS.PURPLE, delay: 0 },
         { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
-        { text: 'Session terminated. Refresh to restart.', color: RETRO_COLORS.AMBER, delay: 0 },
+        { text: 'Session terminated. Redirecting to home...', color: RETRO_COLORS.AMBER, delay: 0 },
         { text: '', color: RETRO_COLORS.GREEN, delay: 0 },
       ]);
+      setTimeout(() => {
+        router.push('/');
+      }, 1200);
     } else {
       addLines([
         { text: `>>> UNKNOWN COMMAND: ${command.toUpperCase()} <<<`, color: RETRO_COLORS.RED, delay: 0 },

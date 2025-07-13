@@ -6,12 +6,8 @@ interface AudioFeedbackProps {
   onKeyPress?: () => void;
 }
 
-const AudioFeedback: React.FC<AudioFeedbackProps> = ({ isTerminalOpen, onKeyPress }) => {
-  const keyPressAudioRef = useRef<HTMLAudioElement | null>(null);
-  const humAudioRef = useRef<HTMLAudioElement | null>(null);
+const AudioFeedback: React.FC<AudioFeedbackProps> = ({ onKeyPress }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
-  const humOscillatorRef = useRef<OscillatorNode | null>(null);
-  const humGainRef = useRef<GainNode | null>(null);
 
   // Initialize audio context
   useEffect(() => {
@@ -43,57 +39,6 @@ const AudioFeedback: React.FC<AudioFeedbackProps> = ({ isTerminalOpen, onKeyPres
 
     onKeyPress?.();
   };
-
-  // Start/stop ambient hum
-  useEffect(() => {
-    if (!audioContextRef.current) return;
-
-    const audioContext = audioContextRef.current;
-
-    if (isTerminalOpen) {
-      // Create ambient hum
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Low electronic hum: 60Hz with slight modulation
-      oscillator.frequency.setValueAtTime(60, audioContext.currentTime);
-      
-      // Add slight frequency modulation for more realistic hum
-      oscillator.frequency.setValueAtTime(60, audioContext.currentTime);
-      oscillator.frequency.linearRampToValueAtTime(62, audioContext.currentTime + 2);
-      oscillator.frequency.linearRampToValueAtTime(58, audioContext.currentTime + 4);
-      oscillator.frequency.linearRampToValueAtTime(60, audioContext.currentTime + 6);
-
-      gainNode.gain.setValueAtTime(0.02, audioContext.currentTime); // Very quiet
-
-      oscillator.start(audioContext.currentTime);
-      
-      humOscillatorRef.current = oscillator;
-      humGainRef.current = gainNode;
-    } else {
-      // Stop hum
-      if (humOscillatorRef.current) {
-        humOscillatorRef.current.stop();
-        humOscillatorRef.current = null;
-      }
-      if (humGainRef.current) {
-        humGainRef.current.disconnect();
-        humGainRef.current = null;
-      }
-    }
-
-    return () => {
-      if (humOscillatorRef.current) {
-        humOscillatorRef.current.stop();
-      }
-      if (humGainRef.current) {
-        humGainRef.current.disconnect();
-      }
-    };
-  }, [isTerminalOpen]);
 
   // Expose key press function globally
   useEffect(() => {
