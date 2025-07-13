@@ -183,7 +183,15 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
   // WebSocket connection effect
   useEffect(() => {
     if (isOpen && missionId && missionStatus === 'stage2' && !webSocketRef.current) {
-      audioPlayerRef.current = new AudioPlayer();
+      const player = new AudioPlayer();
+      audioPlayerRef.current = player;
+
+      player.setOnDialogueEnd(() => {
+        if (webSocketRef.current?.readyState === WebSocket.OPEN) {
+          webSocketRef.current.send(JSON.stringify({ action: 'ready_for_next' }));
+          console.log('[WebSocket] Sent ready_for_next.');
+        }
+      });
 
       console.log('Attempting to establish WebSocket connection for missionId:', missionId);
       const wsUrl = `ws://localhost:8000/api/v1/ws/${missionId}`;
@@ -201,15 +209,7 @@ const StationPopup: React.FC<StationPopupProps> = ({ isOpen, onClose, station, u
             const message = JSON.parse(event.data);
             if (message.status === 'dialogue_end') {
               console.log('[WebSocket] Received dialogue_end signal.');
-              const checkQueueInterval = setInterval(() => {
-                if (audioPlayerRef.current?.isQueueEmpty()) {
-                  clearInterval(checkQueueInterval);
-                  if (webSocketRef.current?.readyState === WebSocket.OPEN) {
-                    webSocketRef.current.send(JSON.stringify({ action: 'ready_for_next' }));
-                    console.log('[WebSocket] Sent ready_for_next.');
-                  }
-                }
-              }, 100);
+              audioPlayerRef.current?.handleDialogueEnd();
             }
           } catch (e) {
             console.error('[WebSocket] Error parsing JSON message:', e);

@@ -4,18 +4,28 @@ class AudioPlayer {
   private audioContext: AudioContext;
   private audioQueue: ArrayBuffer[] = [];
   private isPlaying = false;
-  private sourceNode: AudioBufferSourceNode | null = null;
+  private nextStartTime = 0;
+  private dialogueEndCallback: (() => void) | null = null;
+  private isDialogueEnded = false;
+  private activeSourceNodes = new Set<AudioBufferSourceNode>();
+  private filterNode: BiquadFilterNode;
 
   constructor() {
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
       sampleRate: TTS_SAMPLE_RATE,
     });
+
+    this.filterNode = this.audioContext.createBiquadFilter();
+    this.filterNode.type = 'bandpass';
+    this.filterNode.frequency.value = (300 + 3400) / 2; // Center of the typical vocal range
+    this.filterNode.Q.value = 1.0; // Quality factor
+    this.filterNode.connect(this.audioContext.destination);
   }
 
   public addAudioChunk(chunk: ArrayBuffer) {
     this.audioQueue.push(chunk);
     if (!this.isPlaying) {
-      this.playNextChunk();
+      this.playQueue();
     }
   }
 
@@ -76,45 +86,76 @@ class AudioPlayer {
     return wavBytes.buffer;
   }
 
-  private async playNextChunk() {
+  private async playQueue() {
     if (this.audioQueue.length === 0) {
       this.isPlaying = false;
+      if (this.isDialogueEnded) {
+        this.dialogueEndCallback?.();
+        this.isDialogueEnded = false; // Reset for next dialogue
+      }
       return;
     }
 
     this.isPlaying = true;
-    const chunk = this.audioQueue.shift();
+    const chunk = this.audioQueue.shift()!;
+    const wavData = this._createWavFile(chunk);
 
-    if (chunk) {
-      try {
-        const wavData = this._createWavFile(chunk);
-        const audioBuffer = await this.audioContext.decodeAudioData(wavData);
-        this.sourceNode = this.audioContext.createBufferSource();
-        this.sourceNode.buffer = audioBuffer;
-        this.sourceNode.connect(this.audioContext.destination);
-        this.sourceNode.onended = () => {
-          this.playNextChunk();
-        };
-        this.sourceNode.start();
-      } catch (error) {
-        console.error('Error decoding or playing audio data:', error);
-        this.playNextChunk(); // Continue with the next chunk
+    try {
+      const audioBuffer = await this.audioContext.decodeAudioData(wavData);
+      const sourceNode = this.audioContext.createBufferSource();
+      sourceNode.buffer = audioBuffer;
+      sourceNode.connect(this.filterNode);
+
+      if (this.nextStartTime < this.audioContext.currentTime) {
+        this.nextStartTime = this.audioContext.currentTime;
       }
+
+      sourceNode.start(this.nextStartTime);
+      this.activeSourceNodes.add(sourceNode);
+
+      this.nextStartTime += audioBuffer.duration;
+
+      sourceNode.onended = () => {
+        this.activeSourceNodes.delete(sourceNode);
+        if (this.activeSourceNodes.size === 0 && this.audioQueue.length === 0) {
+          this.isPlaying = false;
+          if (this.isDialogueEnded) {
+            this.dialogueEndCallback?.();
+            this.isDialogueEnded = false; // Reset
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Error processing audio chunk:', error);
+    }
+
+    // Immediately try to process the next chunk
+    this.playQueue();
+  }
+
+  public handleDialogueEnd() {
+    this.isDialogueEnded = true;
+    // If nothing is playing and queue is empty, fire callback immediately
+    if (!this.isPlaying && this.audioQueue.length === 0 && this.activeSourceNodes.size === 0) {
+      this.dialogueEndCallback?.();
+      this.isDialogueEnded = false; // Reset
     }
   }
 
-  public isQueueEmpty(): boolean {
-    return this.audioQueue.length === 0 && !this.isPlaying;
+  public setOnDialogueEnd(callback: () => void) {
+    this.dialogueEndCallback = callback;
   }
 
   public stop() {
-    if (this.sourceNode) {
-      this.sourceNode.onended = null; // Prevent onended from firing
-      this.sourceNode.stop();
-      this.sourceNode = null;
-    }
     this.audioQueue = [];
+    this.activeSourceNodes.forEach(source => {
+      source.onended = null;
+      source.stop();
+    });
+    this.activeSourceNodes.clear();
     this.isPlaying = false;
+    this.isDialogueEnded = false;
+    this.nextStartTime = 0;
   }
 }
 
