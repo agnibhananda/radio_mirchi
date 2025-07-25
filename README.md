@@ -5,9 +5,9 @@ Ever wanted to be a secret agent battling propaganda on retro radio? That's exac
 The inspiration for Radio Mirchi came from the realization that propaganda and misinformation spread through seemingly innocent channels that sound reasonable at first glance. We wanted to create an interactive experience that would help people understand how subtle manipulation works in media, while also being genuinely fun to play.
 
 <div align="center">
-  <img src="homepage.png" alt="Homescreen" width="600"/>
-  <br/>
-  <img src="terminal.png" alt="Terminal" width="600"/>
+  <img src="homepage.png" alt="Homescreen" width="800"/>
+  <br/>  <br/> <br/><br/>
+  <img src="terminal.png" alt="Terminal" width="800"/>
 </div>
 
 ## 🎯 The Mission
